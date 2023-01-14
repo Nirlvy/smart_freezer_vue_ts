@@ -1,0 +1,15 @@
+@import "./base.css";
+
+.el-scrollbar,
+.el-container{
+  height: 100%;
+}
+
+#app,
+.layout-container {
+  height: 100vh;
+}
+
+.ml-10{
+  margin-left: 10px;
+}

@@ -129,7 +129,7 @@ interface ServerData {
 }
 
 interface LServerResponse {
-  data: ServerData
+  data: LServerData
 }
 
 interface LServerData {
@@ -157,7 +157,7 @@ const load = () => {
     .get<LServerResponse, LServerData>(
       "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + localuser.userName
     )
-    .then((res: any) => {
+    .then((res) => {
       if (res.records && res.records[0]) {
         Object.assign(user, res.records[0] as object)
       }

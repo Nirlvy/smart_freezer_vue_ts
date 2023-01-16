@@ -24,7 +24,7 @@
           <div style="padding: 14px; display: block; text-align: center">
             <span>运行冰柜</span>
             <div class="bottom">
-              <span class="value">{{ value.totalfreezer }}</span>
+              <span class="value">{{ value.runfreezer }}</span>
             </div>
           </div>
         </el-card>
@@ -38,7 +38,7 @@
           <div style="padding: 14px; display: block; text-align: center">
             <span>需要补充</span>
             <div class="bottom">
-              <span class="value">{{ value.totalfreezer }}</span>
+              <span class="value">{{ value.waiting }}</span>
             </div>
           </div>
         </el-card>
@@ -52,7 +52,7 @@
           <div style="padding: 14px; display: block; text-align: center">
             <span>总上架</span>
             <div class="bottom">
-              <span class="value">{{ value.totalfreezer }}</span>
+              <span class="value">{{ value.totalshelves }}</span>
             </div>
           </div>
         </el-card>
@@ -66,14 +66,17 @@
           <div style="padding: 14px; display: block; text-align: center">
             <span>已售出</span>
             <div class="bottom">
-              <span class="value">{{ value.totalfreezer }}</span>
+              <span class="value">{{ value.totalsold }}</span>
             </div>
           </div>
         </el-card>
       </el-col>
     </el-row>
   </div>
-  <div id="main" class="main" style="width: 400px; height: 300px" />
+  <el-row>
+    <div id="shelves" style="width: 30%; height: 400px" />
+    <div id="sold" style="width: 30%; height: 400px" />
+  </el-row>
 </template>
 
 <script lang="ts" setup>
@@ -82,61 +85,161 @@ import { onMounted, reactive } from "vue"
 import request from "../utils/request"
 
 onMounted(() => {
-  echartsInit
-  valueInit
+  valueInit()
 })
 
-interface ServerResponse {
-  data: ServerData
+interface HServerResponse {
+  data: HServerData
 }
 
-interface EchartsData {
-  x: string[]
-  y: number[]
+interface HchartsData {
+  freezerId: number[]
+  totalfreezer: number
+  runfreezer: number
+  needfreezer: number
 }
 
-interface ServerData {
+interface HServerData {
   code: string
-  data: EchartsData
+  data: HchartsData
+  msg: string
+}
+
+interface LServerResponse {
+  data: LServerData
+}
+
+interface LServerData {
+  records: object
+  total: number
+}
+
+interface SServerResponse {
+  data: SServerData
+}
+
+interface SServerDataData {
+  shelves: number[]
+  sold: number[]
+}
+
+interface SServerData {
+  code: string
+  data: SServerDataData
   msg: string
 }
 
 const value = reactive({
+  freezerId: [0],
   totalfreezer: 0,
   runfreezer: 0,
-  stopfreezer: 0,
   totalshelves: 0,
   totalsold: 0,
   waiting: 0,
 })
 
+const user = localStorage.getItem("user")
+  ? JSON.parse(localStorage.getItem("user") || "0")
+  : {}
+
+const valueInit = () => {
+  request
+    .get<HServerResponse, HServerData>("/freezer/home?id=" + user.id)
+    .then((res) => {
+      value.totalfreezer = res.data.totalfreezer
+      value.runfreezer = res.data.runfreezer
+      value.waiting = res.data.needfreezer
+      value.freezerId = res.data.freezerId
+      echartsInit()
+    })
+  request
+    .get<LServerResponse, LServerData>(
+      "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + user.userName
+    )
+    .then((res) => {
+      value.totalshelves = res.records[0].shelves
+      value.totalsold = res.records[0].sold
+    })
+}
+
 const echartsInit = () => {
-  var chartDom = document.getElementById("main")
-  var myChart = echarts.init(chartDom as HTMLElement)
-  var option = {
+  var shelvesChartDom = document.getElementById("shelves")
+  var shelvesChart = echarts.init(shelvesChartDom as HTMLElement)
+  var shelvesOption = {
+    title: {
+      left: "center",
+      text: "每月上架数",
+    },
     xAxis: {
       type: "category",
-      data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      data: [
+        "一月",
+        "二月",
+        "三月",
+        "四月",
+        "五月",
+        "六月",
+        "七月",
+        "八月",
+        "九月",
+        "十月",
+        "十一月",
+        "十二月",
+      ],
     },
     yAxis: {
       type: "value",
     },
     series: [
       {
-        data: [150, 230, 224, 218, 135, 147, 260],
+        data: [0],
         type: "line",
       },
     ],
   }
-  request.get<ServerResponse, ServerData>("/echarts/example").then((res) => {
-    option.xAxis.data = res.data.x
-    option.series[0].data = res.data.y
-  })
-  option && myChart.setOption(option)
-}
-
-const valueInit = () => {
-  request.post("/")
+  var soldChartDom = document.getElementById("sold")
+  var soldChart = echarts.init(soldChartDom as HTMLElement)
+  var soldOption = {
+    title: {
+      left: "center",
+      text: "每月售出数",
+    },
+    xAxis: {
+      type: "category",
+      data: [
+        "一月",
+        "二月",
+        "三月",
+        "四月",
+        "五月",
+        "六月",
+        "七月",
+        "八月",
+        "九月",
+        "十月",
+        "十一月",
+        "十二月",
+      ],
+    },
+    yAxis: {
+      type: "value",
+    },
+    series: [
+      {
+        data: [0],
+        type: "line",
+      },
+    ],
+  }
+  request
+    .post<SServerResponse, SServerData>("/echarts/months", value.freezerId)
+    .then((res) => {
+      console.log(res.data)
+      shelvesOption.series[0].data = res.data[0]
+      soldOption.series[0].data=res.data[1]
+      shelvesOption && shelvesChart.setOption(shelvesOption)
+      soldOption && soldChart.setOption(soldOption)
+    })
 }
 </script>
 

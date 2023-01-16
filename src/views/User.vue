@@ -413,19 +413,13 @@ const new_crofirm = async (formEl: FormInstance | undefined) => {
         .post<RServerResponse, RServerData>("/user/register", register_form)
         .then((res) => {
           if (res.code === "200") {
-            ElMessage({
-              message: "注册成功",
-              type: "success",
-            })
+            ElMessage.success("注册成功")
             new_dialog.value = false
             currentPage.value = Math.ceil((total.value + 1) / pageSize.value)
             load()
             clear()
           } else {
-            ElMessage({
-              message: res.msg,
-              type: "error",
-            })
+            ElMessage.error(res.msg)
           }
         })
     }
@@ -445,10 +439,7 @@ const edit_corfirm = async (formEl: FormInstance | undefined) => {
         request.post("/user?userName=", edit_form).then((res) => {
           if (res) {
             {
-              ElMessage({
-                message: "修改成功！",
-                type: "success",
-              })
+              ElMessage.success("修改成功！")
               edit_dialog.value = false
               input_id.value = edit_form.id
               load()
@@ -458,10 +449,7 @@ const edit_corfirm = async (formEl: FormInstance | undefined) => {
         })
       }
     } else {
-      ElMessage({
-        message: "输入不符合要求，请检查！",
-        type: "error",
-      })
+      ElMessage.error("输入不符合要求，请检查！")
     }
   })
 }
@@ -470,10 +458,7 @@ const handleDelete = (row: string) => {
   Object.assign(edit_form, row)
   request.delete("/user/" + edit_form.id).then((res) => {
     if (res) {
-      ElMessage({
-        message: "删除成功！",
-        type: "success",
-      })
+      ElMessage.success("删除成功！")
       load()
     }
   })
@@ -487,10 +472,7 @@ const batchDelete = () => {
   let ids = multipleSelection.value.map((v) => v.id)
   request.delete("/user/del/batch", { data: ids }).then((res) => {
     if (res) {
-      ElMessage({
-        message: "删除成功！",
-        type: "success",
-      })
+      ElMessage.success("删除成功！")
       load()
     }
   })

@@ -40,6 +40,12 @@
           </el-icon>
           库存管理
         </el-menu-item>
+        <el-menu-item index="/manage/role">
+          <el-icon>
+            <Files />
+          </el-icon>
+          访问控制
+        </el-menu-item>
       </el-sub-menu>
 
       <el-sub-menu index="3">
@@ -86,6 +92,9 @@ import { onBeforeRouteUpdate, useRoute } from "vue-router"
 const isCollapse = ref(false)
 const route = useRoute()
 const curPath = ref(route.fullPath)
+const menu = localStorage.getItem("user")
+  ? JSON.parse(localStorage.getItem("user") || "0")
+  : null
 
 const toggleCollapse = () => {
   isCollapse.value = !isCollapse.value

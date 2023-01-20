@@ -1,7 +1,7 @@
 @import "./base.css";
 
 .el-scrollbar,
-.el-container{
+.el-container {
   height: 100%;
 }
 
@@ -10,6 +10,14 @@
   height: 100vh;
 }
 
-.ml-10{
+.ml-10 {
   margin-left: 10px;
+}
+
+.m-5 {
+  margin: 5px;
+}
+
+.m-10 {
+  margin: 10px;
 }

@@ -61,15 +61,14 @@ import request from "../utils/request"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { useRouter } from "vue-router"
 
-interface ServerResponse {
-  data: ServerData
-}
-
 interface objectdata {
+  id: number
   userName: string
   password?: string
   token: string
   img: string
+  menus: Int32Array
+  role: string
 }
 
 interface ServerData {
@@ -101,11 +100,12 @@ const login = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       request
-        .post<ServerResponse, ServerData>("/user/login", user)
+        .post<{ data: ServerData }, ServerData>("/user/login", user)
         .then((res) => {
           if (res.code === "200") {
             const userinfo = { ...res.data }
             delete userinfo.password
+            console.log(userinfo)
             localStorage.setItem("user", JSON.stringify(userinfo))
 
             router.push("/manage/home")

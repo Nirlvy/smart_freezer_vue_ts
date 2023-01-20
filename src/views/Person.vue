@@ -5,11 +5,11 @@
     :rules="rules"
     ref="ruleFormRef"
     status-icon
-    style="margin: 30px; width: 600px"
+    class="form"
   >
     <el-upload
       class="avatar-uploader"
-      action="http://localhost:8080/file/upload"
+      :action="uploadIp"
       :show-file-list="false"
       :on-success="handleAvatarSuccess"
       :before-upload="beforeAvatarUpload"
@@ -113,8 +113,11 @@ import {
   ElInput,
   ElButton,
   UploadProps,
+  ElDatePicker,
+  ElIcon,
+  ElUpload,
 } from "element-plus"
-import { reactive, ref } from "vue"
+import { inject, onMounted, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 import request from "../utils/request"
 
@@ -152,22 +155,26 @@ const user = reactive({
   img: "",
 })
 
+const router = useRouter()
+const ruleFormRef = ref<FormInstance>()
+const ServerIp = inject("ServerIp")
+const uploadIp = ServerIp + "/file/upload"
+
+onMounted(() => {
+  load()
+})
+
 const load = () => {
   request
     .get<LServerResponse, LServerData>(
       "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + localuser.userName
     )
-    .then((res) => {
+    .then((res: any) => {
       if (res.records && res.records[0]) {
         Object.assign(user, res.records[0] as object)
       }
     })
 }
-
-load()
-
-const router = useRouter()
-const ruleFormRef = ref<FormInstance>()
 
 const validatePass2 = (rule: any, value: any, callback: any) => {
   if (user.confirmPassword !== "") {
@@ -257,6 +264,14 @@ const beforeAvatarUpload: UploadProps["beforeUpload"] = (rawFile) => {
 </script>
 
 <style scoped>
+.form {
+  margin: 30px;
+  width: 600px;
+  padding: 30px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px #999;
+}
+
 .el-form-button :deep() .el-form-item__content {
   text-align: right;
   display: block;

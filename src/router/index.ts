@@ -36,6 +36,11 @@ export const router = createRouter({
           name: "个人信息",
           component: () => import("../views/Person.vue"),
         },
+        {
+          path: "role",
+          name: "访问控制",
+          component: () => import("../views/Role.vue"),
+        },
       ],
     },
   ],

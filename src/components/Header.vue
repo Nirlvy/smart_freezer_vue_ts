@@ -30,7 +30,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <img class="avatar" :src="user.img" />
+      <img class="avatar" v-if="user.img != null" :src="user.img" />
       <span style="margin-right: 20px; line-height: 30px">{{
         user.userName
       }}</span>

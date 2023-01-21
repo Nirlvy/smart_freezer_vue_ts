@@ -1,7 +1,7 @@
-import { createRouter, createWebHashHistory } from "vue-router"
+import { createRouter, createWebHistory } from "vue-router"
 
 export const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes: [
     {
       path: "/",
@@ -19,14 +19,19 @@ export const router = createRouter({
       ],
     },
     {
+      path: "/:catchAll(.*)",
+      component: () => import("../views/404.vue"),
+    },
+  ],
+})
+
+export const setRotes = () => {
+  const store = localStorage.getItem("user")
+  if (store) {
+    const manageRoutes = {
       path: "/manage",
       component: () => import("../components/Manage.vue"),
       children: [
-        {
-          path: "user",
-          name: "用户记录",
-          component: () => import("../views/User.vue"),
-        },
         {
           path: "home",
           component: () => import("../views/Home.vue"),
@@ -36,12 +41,27 @@ export const router = createRouter({
           name: "个人信息",
           component: () => import("../views/Person.vue"),
         },
-        {
-          path: "role",
-          name: "访问控制",
-          component: () => import("../views/Role.vue"),
-        },
       ],
-    },
-  ],
-})
+    }
+    const menus = JSON.parse(store)
+    if (menus.menus.includes(6)) {
+      let itemMenu = {
+        path: "role",
+        name: "访问控制",
+        component: () => import("../views/Role.vue"),
+      }
+      manageRoutes.children.push(itemMenu)
+    }
+    if (menus.menus.includes(8)) {
+      let itemMenu = {
+        path: "user",
+        name: "用户记录",
+        component: () => import("../views/User.vue"),
+      }
+      manageRoutes.children.push(itemMenu)
+    }
+    router.addRoute(manageRoutes)
+  }
+}
+
+setRotes()

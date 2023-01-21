@@ -231,14 +231,15 @@ const echartsInit = () => {
       },
     ],
   }
-  request
-    .post<SServerResponse, SServerData>("/echarts/months", value.freezerId)
-    .then((res) => {
-      shelvesOption.series[0].data = res.data[0]
-      soldOption.series[0].data=res.data[1]
-      shelvesOption && shelvesChart.setOption(shelvesOption)
-      soldOption && soldChart.setOption(soldOption)
-    })
+  if (value.freezerId.length != 0)
+    request
+      .post<SServerResponse, SServerData>("/echarts/months", value.freezerId)
+      .then((res) => {
+        shelvesOption.series[0].data = res.data[0]
+        soldOption.series[0].data = res.data[1]
+        shelvesOption && shelvesChart.setOption(shelvesOption)
+        soldOption && soldChart.setOption(soldOption)
+      })
 }
 </script>
 

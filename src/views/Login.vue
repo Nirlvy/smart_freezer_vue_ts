@@ -60,6 +60,7 @@ import { Lock, UserFilled } from "@element-plus/icons-vue"
 import request from "../utils/request"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { useRouter } from "vue-router"
+import { setRotes } from "../router"
 
 interface objectdata {
   id: number
@@ -107,17 +108,11 @@ const login = async (formEl: FormInstance | undefined) => {
             delete userinfo.password
             console.log(userinfo)
             localStorage.setItem("user", JSON.stringify(userinfo))
-
+            setRotes()
             router.push("/manage/home")
-            ElMessage({
-              message: "登录成功",
-              type: "success",
-            })
+            ElMessage.success("登录成功")
           } else {
-            ElMessage({
-              message: res.msg,
-              type: "error",
-            })
+            ElMessage.error(res.msg)
           }
         })
     }

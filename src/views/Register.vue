@@ -76,6 +76,7 @@ import { Lock, UserFilled } from "@element-plus/icons-vue"
 import request from "../utils/request"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { useRouter } from "vue-router"
+import { setRotes } from "../router"
 
 interface ServerResponse {
   data: ServerData
@@ -141,17 +142,12 @@ const register = async (formEl: FormInstance | undefined) => {
         .post<ServerResponse, ServerData>("/user/register", user)
         .then((res) => {
           if (res.code === "200") {
-            ElMessage({
-              message: "注册成功",
-              type: "success",
-            })
+            ElMessage.success("注册成功")
             localStorage.setItem("user", JSON.stringify(res.data))
+            setRotes()
             router.push("/manage/home")
           } else {
-            ElMessage({
-              message: res.msg,
-              type: "error",
-            })
+            ElMessage.error(res.msg)
           }
         })
     }

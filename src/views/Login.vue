@@ -106,7 +106,6 @@ const login = async (formEl: FormInstance | undefined) => {
           if (res.code === "200") {
             const userinfo = { ...res.data }
             delete userinfo.password
-            console.log(userinfo)
             localStorage.setItem("user", JSON.stringify(userinfo))
             setRotes()
             router.push("/manage/home")

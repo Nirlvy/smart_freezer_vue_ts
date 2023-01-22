@@ -44,6 +44,14 @@ export const setRotes = () => {
       ],
     }
     const menus = JSON.parse(store)
+    if (menus.menus.includes(4)) {
+      let itemMenu = {
+        path: "goods",
+        name: "商品控制",
+        component: () => import("../views/Goods.vue"),
+      }
+      manageRoutes.children.push(itemMenu)
+    }
     if (menus.menus.includes(6)) {
       let itemMenu = {
         path: "role",

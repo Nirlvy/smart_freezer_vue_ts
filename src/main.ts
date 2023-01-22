@@ -5,7 +5,7 @@ import ElementPlus from "element-plus"
 import "element-plus/dist/index.css"
 import zhCn from "element-plus/dist/locale/zh-cn.mjs"
 
-import "./assets/main.css"
+import "./assets/css/main.css"
 import axios from "axios"
 
 import { ServerIp } from "./assets/config"

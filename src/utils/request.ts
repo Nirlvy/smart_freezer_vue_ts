@@ -40,10 +40,7 @@ request.interceptors.response.use(
       res = res ? JSON.parse(res) : res
     }
     if (res.code === "401") {
-      ElMessage({
-        message: res.msg,
-        type: "error",
-      })
+      ElMessage.error(res.msg)
     }
     return res
   },

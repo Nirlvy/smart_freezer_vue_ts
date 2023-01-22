@@ -137,6 +137,7 @@
     <el-table-column type="selection" width="30" />
     <el-table-column prop="id" label="ID" width="60" />
     <el-table-column prop="userName" label="用户名" />
+    <el-table-column prop="role" label="身份" />
     <el-table-column prop="createTime" label="注册时间" />
     <el-table-column prop="shelves" label="上架总数" />
     <el-table-column prop="sold" label="销售总数" />
@@ -183,6 +184,12 @@
           show-word-limit
         />
       </el-form-item>
+      <el-form-item label="身份" prop="role">
+        <el-radio-group v-model="edit_form.role">
+          <el-radio label="admin">管理员</el-radio>
+          <el-radio label="user">用户</el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item label="注册时间" prop="createTime">
         <el-date-picker
           v-model="edit_form.createTime"
@@ -210,7 +217,9 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="edit_dialog = false">取消</el-button>
-        <el-button type="primary" @click="edit_corfirm">确定</el-button>
+        <el-button type="primary" @click="edit_corfirm(ruleFormRef)"
+          >确定</el-button
+        >
       </span>
     </template>
   </el-dialog>
@@ -250,24 +259,16 @@ import type { UploadInstance, UploadProps, UploadRawFile } from "element-plus"
 import request from "../utils/request"
 
 interface Userinfor {
-  id: Int32Array
+  id: number
   userName: string
   createTime: string
-  shelves: Int32Array
-  sold: Int32Array
-}
-
-interface ServerResponse {
-  data: ServerData
+  shelves: number
+  sold: number
 }
 
 interface ServerData {
   records: string
   total: number
-}
-
-interface RServerResponse {
-  data: RServerData
 }
 
 interface RServerData {
@@ -304,6 +305,7 @@ const register_form = reactive({
 const edit_form = reactive({
   id: "",
   userName: "",
+  role: "user",
   createTime: "",
   shelves: "",
   sold: "",
@@ -352,6 +354,7 @@ const edit_rules = reactive<FormRules>({
     { required: true, message: "请输入用户名", trigger: "blur" },
     { min: 1, max: 20, message: "长度应该为1到20位", trigger: "blur" },
   ],
+  role: [{ required: true }],
   createTime: [{ required: true, message: "请输入注册时间", trigger: "blur" }],
   shelves: [
     { required: true, message: "请输入上架数量", trigger: "blur" },
@@ -381,7 +384,7 @@ const clear = () => {
 
 const load = () => {
   request
-    .get<ServerResponse, ServerData>(
+    .get<{ data: ServerData }, ServerData>(
       "/user/page?pageNum=" +
         currentPage.value +
         "&pageSize=" +
@@ -410,7 +413,10 @@ const new_crofirm = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       request
-        .post<RServerResponse, RServerData>("/user/register", register_form)
+        .post<{ data: RServerData }, RServerData>(
+          "/user/register",
+          register_form
+        )
         .then((res) => {
           if (res.code === "200") {
             ElMessage.success("注册成功")

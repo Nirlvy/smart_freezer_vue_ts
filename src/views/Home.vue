@@ -166,9 +166,7 @@ const valueInit = () => {
       "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + user.userName
     )
     .then((res) => {
-      if (res.code === "401") {
-        router.push("/")
-      } else {
+      if (res.code != "401") {
         value.totalshelves = res.records[0].shelves
         value.totalsold = res.records[0].sold
         request
@@ -292,7 +290,6 @@ const echartsInit = () => {
   request
     .post<{ data: RServerData }, RServerData>("/echarts/sold", value.freezerId)
     .then((res) => {
-      console.log(res)
       pieOption.series[0].data = res.data[0].map(
         (item: number | string, index: number) => ({
           name: item,

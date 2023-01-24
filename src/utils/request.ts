@@ -1,6 +1,7 @@
 import axios from "axios"
 import { ElMessage } from "element-plus"
 import { ServerIp } from "../assets/config"
+import { router } from "../router/index"
 
 const url = ServerIp
 
@@ -41,6 +42,7 @@ request.interceptors.response.use(
     }
     if (res.code === "401") {
       ElMessage.error(res.msg)
+      router.push("/")
     }
     return res
   },

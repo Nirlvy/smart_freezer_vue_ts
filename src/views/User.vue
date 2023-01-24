@@ -239,7 +239,7 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, reactive, ref, watch } from "vue"
+import { inject, reactive, ref } from "vue"
 import {
   Search,
   Edit,
@@ -276,14 +276,11 @@ interface RServerData {
   data: Array<string>
   msg: string
 }
-
+//TODO:简化
 const tableData = ref()
 const input_id = ref("")
 const input_userName = ref("")
 const input_date = ref([])
-watch(input_date, (nv) => {
-  if (nv == null) input_date.value = []
-})
 const input_shelves = ref("")
 const input_sold = ref("")
 const total = ref(0)

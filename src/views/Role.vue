@@ -75,20 +75,16 @@ const data: Tree[] = [
       },
       {
         id: 5,
-        label: "库存管理",
-      },
-      {
-        id: 6,
         label: "访问控制",
       },
     ],
   },
   {
-    id: 7,
+    id: 6,
     label: "记录菜单",
     children: [
       {
-        id: 8,
+        id: 7,
         label: "用户记录",
       },
     ],

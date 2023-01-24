@@ -47,12 +47,12 @@ export const setRotes = () => {
     if (menus.menus.includes(4)) {
       let itemMenu = {
         path: "goods",
-        name: "商品控制",
+        name: "商品管理",
         component: () => import("../views/Goods.vue"),
       }
       manageRoutes.children.push(itemMenu)
     }
-    if (menus.menus.includes(6)) {
+    if (menus.menus.includes(5)) {
       let itemMenu = {
         path: "role",
         name: "访问控制",
@@ -60,7 +60,7 @@ export const setRotes = () => {
       }
       manageRoutes.children.push(itemMenu)
     }
-    if (menus.menus.includes(8)) {
+    if (menus.menus.includes(7)) {
       let itemMenu = {
         path: "user",
         name: "用户记录",

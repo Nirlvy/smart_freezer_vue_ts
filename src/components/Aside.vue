@@ -36,19 +36,13 @@
           </el-icon>
           设备管理
         </el-menu-item>
-        <el-menu-item v-if="menus.includes(4)" index="2">
+        <el-menu-item v-if="menus.includes(4)" index="/manage/goods">
           <el-icon>
             <Present />
           </el-icon>
           商品管理
         </el-menu-item>
-        <el-menu-item v-if="menus.includes(5)" index="3">
-          <el-icon>
-            <Files />
-          </el-icon>
-          库存管理
-        </el-menu-item>
-        <el-menu-item v-if="menus.includes(6)" index="/manage/role">
+        <el-menu-item v-if="menus.includes(5)" index="/manage/role">
           <el-icon>
             <Files />
           </el-icon>
@@ -56,14 +50,14 @@
         </el-menu-item>
       </el-sub-menu>
 
-      <el-sub-menu v-if="menus.includes(8)" index="2">
+      <el-sub-menu v-if="menus.includes(7)" index="2">
         <template #title>
           <el-icon>
             <Tickets />
           </el-icon>
           <span>记录菜单</span>
         </template>
-        <el-menu-item v-if="menus.includes(8)" index="/manage/user">
+        <el-menu-item v-if="menus.includes(7)" index="/manage/user">
           <el-icon>
             <DataAnalysis />
           </el-icon>

@@ -5,7 +5,11 @@
       v-model="input.id"
       placeholder="冰柜ID"
       style="width: 220px"
+      multiple
+      collapse-tags
+      collapse-tags-tooltip
       clearable
+      @clear="load()"
     >
       <el-option
         v-for="item in options"
@@ -14,15 +18,24 @@
         :value="item.value"
       />
     </el-select>
-    <el-input
+    <el-select
       class="ml-10"
-      style="width: 220px"
+      v-model="input.name"
       placeholder="商品名"
+      multiple
+      collapse-tags
+      collapse-tags-tooltip
       clearable
       @clear="load()"
-      v-model="input.name"
-      :prefix-icon="User"
-    />
+    >
+      <el-option
+        v-for="item in goods"
+        :key="item.value"
+        :label="item.label"
+        :value="item.value"
+        :disabled="item.disabled"
+      />
+    </el-select>
     <el-select
       class="ml-10"
       v-model="input.state"
@@ -61,9 +74,9 @@
   </div>
 
   <div style="padding: 10px 10px">
-    <el-button type="primary" :icon="Plus" @click="new_dialog = true"
-      >新增</el-button
-    >
+    <el-button type="primary" :icon="Plus" @click="up_dialog = true">
+      新增
+    </el-button>
     <el-popconfirm
       title="确定批量删除?"
       width="200"
@@ -74,45 +87,51 @@
         <el-button type="danger" :icon="DocumentDelete">批量删除</el-button>
       </template>
     </el-popconfirm>
-    <el-button type="primary" class="ml-10" :icon="DocumentCopy" @click="exp()"
-      >导出
+    <el-button type="primary" class="ml-10" :icon="DocumentCopy" @click="exp()">
+      导出
     </el-button>
   </div>
 
-  <el-dialog v-model="new_dialog" title="新上架">
-    <el-form
-      :model="up_form"
-      :rules="up_rules"
-      ref="ruleFormRef"
-      status-icon
-      hide-required-asterisk
-    >
+  <el-dialog v-model="up_dialog" title="新上架" width="400px">
+    <el-form :model="up_form" :rules="up_rules" ref="ruleFormRef" status-icon>
+      <el-form-item label="冰柜" :label-width="70" prop="id">
+        <el-select v-model="up_form.id" placeholder="冰柜ID" clearable>
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="商品名" :label-width="70" prop="name">
-        <el-input
-          v-model="up_form.name"
-          :prefix-icon="UserFilled"
-          placeholder="请输入1-10个字符"
-          clearable
-          minlength="1"
-          maxlength="10"
-          show-word-limit
-        />
+        <el-select v-model="up_form.name" placeholder="商品名" clearable>
+          <el-option
+            v-for="item in goods"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+            :disabled="item.disabled"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="数量" :label-width="70" prop="num">
         <el-input
-          v-model="up_form."
-          :prefix-icon="Lock"
-          placeholder="请输入6-30个字符作为你的密码"
+          v-model="up_form.num"
+          :prefix-icon="Star"
+          placeholder="请输入上架数量"
           clearable
-          minlength="6"
-          maxlength="30"
+          minlength="1"
+          maxlength="3"
+          show-word-limit
+          style="width: 225px"
         />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="new_dialog = false">取消</el-button>
-        <el-button type="primary" @click="new_crofirm(ruleFormRef)">
+        <el-button @click="up_dialog = false">取消</el-button>
+        <el-button type="primary" @click="up_crofirm(ruleFormRef)">
           确定
         </el-button>
       </span>
@@ -125,10 +144,21 @@
     @selection-change="selection"
   >
     <el-table-column type="selection" width="30" />
-    <el-table-column prop="id" label="ID" width="40" />
+    <el-table-column prop="id" label="ID" width="50" />
     <el-table-column prop="freezerId" label="冰柜ID" width="80" />
     <el-table-column prop="name" label="商品名" />
-    <el-table-column prop="state" label="状态" />
+    <el-table-column label="状态">
+      <template #default="scope">
+        <el-switch
+          v-model="scope.row.state"
+          :disabled="!scope.row.state"
+          inline-prompt
+          active-text="未售出"
+          inactive-text="已售出"
+          @change="Change(scope.row)"
+        />
+      </template>
+    </el-table-column>
     <el-table-column prop="upTime" label="上架时间" />
     <el-table-column prop="downTime" label="下架时间" />
     <el-table-column label="操作" width="100">
@@ -165,12 +195,12 @@
 <script lang="ts" setup>
 import {
   DocumentDelete,
-  User,
   Search,
   DocumentCopy,
   Plus,
+  Star,
 } from "@element-plus/icons-vue"
-import { ElMessage } from "element-plus"
+import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { reactive, ref } from "vue"
 import request from "../utils/request"
 
@@ -194,9 +224,20 @@ interface ServerData {
   records: records
   total: number
 }
+interface GServerData {
+  id: number
+  name: string
+  enable: boolean
+}
+interface RServerData {
+  code: string
+  msg: string
+  data: object
+}
 
+const ruleFormRef = ref<FormInstance>()
 const tableData = ref()
-const new_dialog = ref(false)
+const up_dialog = ref(false)
 const data = reactive({
   currentPage: 1,
   pageSize: 10,
@@ -205,24 +246,30 @@ const data = reactive({
 })
 const input = reactive({
   id: [] as number[],
-  name: "",
+  name: [] as string[],
   state: "",
   upDate: "",
   downDate: "",
 })
 const edit_form = reactive({
-  id: 0,
-  freezerId: 0,
+  id: "",
+  freezerId: "",
   name: "",
   state: "",
   upTime: "",
   downTime: "",
+})
+const up_form = reactive({
+  id: "",
+  name: "",
+  num: "",
 })
 const multipleSelection = ref<goodsinfo[]>([])
 const user = localStorage.getItem("user")
   ? JSON.parse(localStorage.getItem("user") || "0")
   : {}
 const options = ref()
+const goods = ref()
 const states = ref([
   {
     value: "true",
@@ -234,12 +281,24 @@ const states = ref([
   },
 ])
 const tableRowClassName = ({ row }: { row: goodsinfo }) => {
-  if (row.state == "已售出") {
+  if (row.state == false) {
     return "success-row"
   }
   return ""
 }
-
+const up_rules = reactive<FormRules>({
+  id: [{ required: true, message: "请选择冰柜", trigger: "blur" }],
+  name: [{ required: true, message: "请选择商品名", trigger: "blur" }],
+  num: [
+    { required: true, message: "请输入上架数量", trigger: "blur" },
+    {
+      type: "number",
+      message: "请输入数字",
+      trigger: "blur",
+      transform: (value) => Number(value),
+    },
+  ],
+})
 const load = () => {
   request
     .post<{ data: ServerData }, ServerData>(
@@ -249,22 +308,19 @@ const load = () => {
         data.pageSize +
         "&id=" +
         user.id +
-        "&name=" +
-        input.name +
         "&state=" +
         input.state +
         "&upTime=" +
         input.upDate +
         "&downTime=" +
         input.downDate,
-      Array.from(input.id)
+      {
+        freezerId: Array.from(input.id),
+        name: Array.from(input.name),
+      }
     )
     .then((res) => {
-      let tabledata = res.records.map((item) => {
-        item.state = item.state ? "未售出" : "已售出"
-        return item
-      })
-      tableData.value = tabledata
+      tableData.value = res.records
       data.total = res.total
       data.freezerId = [
         ...new Set(res.records.map((record) => record.freezerId)),
@@ -274,6 +330,13 @@ const load = () => {
         label: item,
       }))
     })
+  request.get<{ data: GServerData[] }, GServerData[]>("/goods").then((res) => {
+    goods.value = Array.from(res).map((item) => ({
+      value: item.name,
+      label: item.name,
+      disable: !item.enable,
+    }))
+  })
 }
 load()
 const selection = (val: goodsinfo[]) => {
@@ -294,6 +357,51 @@ const batchDelete = () => {
     if (res) {
       ElMessage.success("删除成功！")
       load()
+    }
+  })
+}
+const Change = (row: { state: boolean }) => {
+  if (!row.state) {
+    Object.assign(edit_form, row)
+    const currentDate = new Date()
+    const year = currentDate.getFullYear()
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, "0")
+    const day = currentDate.getDate().toString().padStart(2, "0")
+    const hours = currentDate.getHours().toString().padStart(2, "0")
+    const minutes = currentDate.getMinutes().toString().padStart(2, "0")
+    const seconds = currentDate.getSeconds().toString().padStart(2, "0")
+    const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+    edit_form.downTime = time
+    request.post("/shelvesLog/sold", edit_form).then((res) => {
+      if (res) {
+        ElMessage.success("已设置为售出")
+        load()
+      }
+    })
+  }
+}
+const up_crofirm = async (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  await formEl.validate((valid) => {
+    if (valid) {
+      request
+        .post<{ data: RServerData }, RServerData>(
+          "/shelvesLog/up?id=" +
+            up_form.id +
+            "&name=" +
+            up_form.name +
+            "&num=" +
+            up_form.num
+        )
+        .then((res) => {
+          if (res.code === "200") {
+            ElMessage.success("上架成功")
+            up_dialog.value = false
+            load()
+          } else {
+            ElMessage.error(res.msg)
+          }
+        })
     }
   })
 }

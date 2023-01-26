@@ -201,7 +201,7 @@ import {
   Star,
 } from "@element-plus/icons-vue"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
-import { reactive, ref } from "vue"
+import { inject, reactive, ref } from "vue"
 import request from "../utils/request"
 
 interface goodsinfo {
@@ -268,6 +268,7 @@ const multipleSelection = ref<goodsinfo[]>([])
 const user = localStorage.getItem("user")
   ? JSON.parse(localStorage.getItem("user") || "0")
   : {}
+const server = inject("ServerIp")
 const options = ref()
 const goods = ref()
 const states = ref([
@@ -330,13 +331,16 @@ const load = () => {
         label: item,
       }))
     })
-  request.get<{ data: GServerData[] }, GServerData[]>("/goods").then((res) => {
-    goods.value = Array.from(res).map((item) => ({
-      value: item.name,
-      label: item.name,
-      disable: !item.enable,
-    }))
-  })
+  if (!goods.value)
+    request
+      .get<{ data: GServerData[] }, GServerData[]>("/goods")
+      .then((res) => {
+        goods.value = Array.from(res).map((item) => ({
+          value: item.name,
+          label: item.name,
+          disable: !item.enable,
+        }))
+      })
 }
 load()
 const selection = (val: goodsinfo[]) => {
@@ -404,6 +408,26 @@ const up_crofirm = async (formEl: FormInstance | undefined) => {
         })
     }
   })
+}
+const exp = async () => {
+  request
+    .get(server + "/shelvesLog/export?id=" + user.id, { responseType: "blob" })
+    .then((response) => {
+      if (response) {
+        const url = window.URL.createObjectURL(new Blob([response.data]))
+        const link = document.createElement("a")
+        link.href = url
+        link.setAttribute("download", "表格.xlsx")
+        document.body.appendChild(link)
+        link.click()
+      } else {
+        alert("请求失败,请稍后再试")
+      }
+    })
+    .catch((error) => {
+      console.log(error)
+      alert("请求失败,请稍后再试")
+    })
 }
 </script>
 

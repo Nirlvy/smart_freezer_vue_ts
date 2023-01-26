@@ -481,8 +481,23 @@ const batchDelete = () => {
   })
 }
 
-const exp = () => {
-  window.open(server + "/user/export")
+const exp = async () => {
+  try {
+    const res = await request.get(server + "/user/export", {
+      responseType: "blob",
+    })
+    const blob = new Blob([res.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    })
+    const fileName = "用户信息.xlsx"
+    const link = document.createElement("a")
+    link.href = window.URL.createObjectURL(blob)
+    link.download = fileName
+    link.click()
+    window.URL.revokeObjectURL(link.href)
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 const handleUpSuccess = () => {

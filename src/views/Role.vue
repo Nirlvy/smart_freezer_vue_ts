@@ -1,24 +1,43 @@
 <template>
-  <div class="bg_card">
-    <el-select v-model="value" class="m-5"  :change="load()">
-      <el-option
-        v-for="item in options"
-        :key="item.value"
-        :label="item.label"
-        :value="item.value"
-        
+  <div style="display: flex">
+    <div class="bg_card">
+      <el-select v-model="value" class="m-5">
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+      <el-tree
+        ref="treeRef"
+        class="m-5"
+        node-key="id"
+        :data="data"
+        :props="props"
+        show-checkbox
+        default-expand-all
       />
-    </el-select>
-    <el-tree
-      ref="treeRef"
-      class="m-5"
-      node-key="id"
-      :data="data"
-      :props="props"
-      show-checkbox
-      default-expand-all
-    />
-    <el-button class="m-10" type="primary" @click="save">保存</el-button>
+      <el-button class="m-10" type="primary" @click="save">保存</el-button>
+    </div>
+    <div class="bg_card">
+      <el-transfer
+        class="transfer"
+        :titles="['启用', '禁用']"
+        v-model="tvalue"
+        :data="tdata"
+      >
+        <template #left-footer>
+          <div style="display: flex">
+            <el-button class="transfer-footer" size="small">添加</el-button>
+            <el-input v-model="a" placeholder=""></el-input>
+          </div>
+        </template>
+        <template #right-footer>
+          <el-button class="transfer-footer" size="small">删除</el-button>
+        </template>
+      </el-transfer>
+    </div>
   </div>
 </template>
 
@@ -32,10 +51,22 @@ interface Tree {
   label: string
   children?: Tree[]
 }
-
 interface IData {
   code: string
 }
+interface Option {
+  key: string
+  label: string
+  disabled: boolean
+}
+interface GServerData {
+  id: number
+  name: string
+  enable: boolean
+}
+
+const tdata = ref<Option[]>()
+const tvalue = ref([])
 
 const value = ref("admin")
 const treeRef = ref<InstanceType<typeof ElTree>>()
@@ -95,22 +126,31 @@ const load = () => {
   request.get("/roleMenu/" + value.value).then((res) => {
     treeRef.value!.setCheckedKeys(res.data)
   })
+  let key = 1
+  request.get<{ data: GServerData[] }, GServerData[]>("/goods").then((res) => {
+    tdata.value = Array.from(res).map((item) => ({
+      key: item.name,
+      label: item.name,
+      disabled: false,
+    }))
+  })
 }
-
+load()
 const save = () => {
-  request
-    .post<{ data: IData }, IData>(
-      "/roleMenu/" + value.value,
-      treeRef.value!.getCheckedKeys(false)
-    )
-    .then((res) => {
-      if (res.code === "200") {
-        ElMessage.success("修改成功")
-      }
-    })
-    .catch(() => {
-      ElMessage.error("系统错误请联系管理员")
-    })
+  // request
+  //   .post<{ data: IData }, IData>(
+  //     "/roleMenu/" + value.value,
+  //     treeRef.value!.getCheckedKeys(false)
+  //   )
+  //   .then((res) => {
+  //     if (res.code === "200") {
+  //       ElMessage.success("修改成功")
+  //     }
+  //   })
+  //   .catch(() => {
+  //     ElMessage.error("系统错误请联系管理员")
+  //   })
+  console.log(tvalue.value)
 }
 </script>
 
@@ -120,5 +160,18 @@ const save = () => {
   padding: 20px;
   border-radius: 5px;
   box-shadow: 2px 2px 5px #999;
+}
+.transfer-footer {
+  margin-left: 15px;
+  padding: 6px 5px;
+}
+.transfer
+  :deep()
+  .el-transfer-panel
+  .el-transfer-panel__header
+  .el-checkbox
+  .el-checkbox__label
+  span {
+  right: -110px !important;
 }
 </style>

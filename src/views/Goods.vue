@@ -33,7 +33,6 @@
         :key="item.value"
         :label="item.label"
         :value="item.value"
-        :disabled="item.disabled"
       />
     </el-select>
     <el-select
@@ -227,7 +226,7 @@ interface ServerData {
 interface GServerData {
   id: number
   name: string
-  enable: boolean
+  disable: boolean
 }
 interface RServerData {
   code: string
@@ -338,7 +337,7 @@ const load = () => {
         goods.value = Array.from(res).map((item) => ({
           value: item.name,
           label: item.name,
-          disable: !item.enable,
+          disabled: item.disable,
         }))
       })
 }
@@ -411,15 +410,17 @@ const up_crofirm = async (formEl: FormInstance | undefined) => {
 }
 const exp = async () => {
   request
-    .get(server + "/shelvesLog/export?id=" + user.id, { responseType: "blob" })
+    .get(server + "/shelvesLog/export?id=" + user.id, {
+      responseType: "blob",
+    })
     .then((response) => {
       if (response) {
-        const url = window.URL.createObjectURL(new Blob([response.data]))
+        const blob = new Blob([response.data])
         const link = document.createElement("a")
-        link.href = url
-        link.setAttribute("download", "表格.xlsx")
-        document.body.appendChild(link)
+        link.href = window.URL.createObjectURL(blob)
+        link.download = "data.xlsx"
         link.click()
+        document.body.removeChild(link)
       } else {
         alert("请求失败,请稍后再试")
       }

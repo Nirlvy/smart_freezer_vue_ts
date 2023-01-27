@@ -55,7 +55,7 @@ export const setRotes = () => {
     if (menus.menus.includes(5)) {
       let itemMenu = {
         path: "role",
-        name: "访问控制",
+        name: "管理控制",
         component: () => import("../views/Role.vue"),
       }
       manageRoutes.children.push(itemMenu)

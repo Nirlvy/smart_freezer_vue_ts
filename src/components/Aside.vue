@@ -46,7 +46,7 @@
           <el-icon>
             <Files />
           </el-icon>
-          访问控制
+          管理控制
         </el-menu-item>
       </el-sub-menu>
 

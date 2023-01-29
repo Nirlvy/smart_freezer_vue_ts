@@ -415,11 +415,14 @@ const exp = async () => {
     })
     .then((response) => {
       if (response) {
-        const blob = new Blob([response.data])
+        const blob = new Blob([response.data], {
+          type: "application/vnd.ms-excel",
+        })
         const link = document.createElement("a")
         link.href = window.URL.createObjectURL(blob)
         link.download = "data.xlsx"
         link.click()
+        window.URL.revokeObjectURL(link.href)
         document.body.removeChild(link)
       } else {
         alert("请求失败,请稍后再试")

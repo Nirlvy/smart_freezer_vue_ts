@@ -30,7 +30,7 @@
           </el-icon>
           <span>管理菜单</span>
         </template>
-        <el-menu-item v-if="menus.includes(3)" index="1">
+        <el-menu-item v-if="menus.includes(3)" index="/manage/freezer">
           <el-icon>
             <Refrigerator />
           </el-icon>

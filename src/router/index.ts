@@ -44,6 +44,14 @@ export const setRotes = () => {
       ],
     }
     const menus = JSON.parse(store)
+    if (menus.menus.includes(3)) {
+      let itemMenu = {
+        path: "freezer",
+        name: "设备管理",
+        component: () => import("../views/Freezer.vue"),
+      }
+      manageRoutes.children.push(itemMenu)
+    }
     if (menus.menus.includes(4)) {
       let itemMenu = {
         path: "goods",

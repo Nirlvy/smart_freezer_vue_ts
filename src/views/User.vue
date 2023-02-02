@@ -239,7 +239,7 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, reactive, ref } from "vue"
+import { reactive, ref } from "vue"
 import {
   Search,
   Edit,
@@ -257,6 +257,7 @@ import {
 import { ElMessage, FormInstance, FormRules, genFileId } from "element-plus"
 import type { UploadInstance, UploadProps, UploadRawFile } from "element-plus"
 import request from "../utils/request"
+import { useStore } from "../store/store"
 
 interface Userinfor {
   id: number
@@ -270,13 +271,8 @@ interface ServerData {
   records: string
   total: number
 }
-
-interface RServerData {
-  code: string
-  data: Array<string>
-  msg: string
-}
 //TODO:简化
+const store = useStore()
 const tableData = ref()
 const input_id = ref("")
 const input_userName = ref("")
@@ -290,7 +286,7 @@ const new_dialog = ref(false)
 const edit_dialog = ref(false)
 const multipleSelection = ref<Userinfor[]>([])
 const upload = ref<UploadInstance>()
-const server = inject("ServerIp")
+const server = store.ServerIp
 const server_url = ref(server + "/user/import")
 
 const register_form = reactive({

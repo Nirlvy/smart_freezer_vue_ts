@@ -29,6 +29,7 @@
         v-model="disable"
         :data="tdata"
         @change="change"
+        @right-check-change="rchange"
       >
         <template #left-footer>
           <div class="lf">
@@ -40,8 +41,8 @@
             >
               <template #reference>
                 <el-button class="transfer-footer" size="small" @click="newUp"
-                  >添加</el-button
-                >
+                  >添加
+                </el-button>
               </template>
             </el-popover>
             <el-input
@@ -57,12 +58,12 @@
           <el-popover
             placement="bottom"
             trigger="hover"
-            content="此框商品将被删除"
+            content="此框选中商品将被删除"
           >
             <template #reference>
               <el-button class="transfer-footer" size="small" @click="del"
-                >删除</el-button
-              >
+                >删除
+              </el-button>
             </template>
           </el-popover>
         </template>
@@ -73,7 +74,8 @@
 
 <script lang="ts" setup>
 import { ElMessage, ElTree } from "element-plus"
-import { inject, ref } from "vue"
+import { ref } from "vue"
+import { useStore } from "../store/store"
 import request from "../utils/request"
 
 interface Tree {
@@ -94,15 +96,12 @@ interface GServerData {
   name: string
   disable: boolean
 }
-interface RServerData {
-  code: string
-  data: Array<string>
-  msg: string
-}
 
-const server = inject("ServerIp")
+const store = useStore()
+const server = store.ServerIp
 const tdata = ref<tdataOption[]>()
 const disable = ref([] as number[])
+const delGoods = ref([] as number[])
 const newGoods = ref("")
 const value = ref("admin")
 const treeRef = ref<InstanceType<typeof ElTree>>()
@@ -175,20 +174,19 @@ const load = () => {
 }
 load()
 const save = () => {
-  // request
-  //   .post<{ data: IData }, IData>(
-  //     "/roleMenu/" + value.value,
-  //     treeRef.value!.getCheckedKeys(false)
-  //   )
-  //   .then((res) => {
-  //     if (res.code === "200") {
-  //       ElMessage.success("修改成功")
-  //     }
-  //   })
-  //   .catch(() => {
-  //     ElMessage.error("系统错误请联系管理员")
-  //   })
-  console.log(disable.value)
+  request
+    .post<{ data: IData }, IData>(
+      "/roleMenu/" + value.value,
+      treeRef.value!.getCheckedKeys(false)
+    )
+    .then((res) => {
+      if (res.code === "200") {
+        ElMessage.success("修改成功")
+      }
+    })
+    .catch((e) => {
+      ElMessage.error("系统错误请联系管理员:" + e)
+    })
 }
 const newUp = () => {
   if (
@@ -216,7 +214,7 @@ const newUp = () => {
 const del = () => {
   request
     .delete<{ data: RServerData }, RServerData>(server + "/goods/del", {
-      data: disable.value,
+      data: delGoods.value,
     })
     .then((res) => {
       console.log(res)
@@ -249,6 +247,9 @@ const change = () => {
         load()
       }
     })
+}
+const rchange = (del: number[]) => {
+  delGoods.value = del
 }
 </script>
 

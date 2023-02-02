@@ -84,12 +84,7 @@
       >
         确认修改
       </el-button>
-      <el-button
-        type="success"
-        size="large"
-        round
-        @click="router.push('/home')"
-      >
+      <el-button type="success" size="large" round @click="router.go(-1)">
         返回
       </el-button>
     </el-form-item>
@@ -117,32 +112,10 @@ import {
   ElIcon,
   ElUpload,
 } from "element-plus"
-import { inject, onMounted, reactive, ref } from "vue"
+import { onMounted, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
+import { useStore } from "../store/store"
 import request from "../utils/request"
-
-interface ServerResponse {
-  data: ServerData
-}
-
-interface ServerData {
-  code: string
-  data: Array<string>
-  msg: string
-}
-
-interface LServerResponse {
-  data: LServerData
-}
-
-interface LServerData {
-  records: object
-  total: number
-}
-
-const localuser = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user") || "0")
-  : {}
 
 const user = reactive({
   id: "",
@@ -154,11 +127,12 @@ const user = reactive({
   sold: "",
   img: "",
 })
-
 const router = useRouter()
+const store = useStore()
 const ruleFormRef = ref<FormInstance>()
-const ServerIp = inject("ServerIp")
+const ServerIp = store.ServerIp
 const uploadIp = ServerIp + "/file/upload"
+const localuser = store.user
 
 onMounted(() => {
   load()
@@ -166,7 +140,7 @@ onMounted(() => {
 
 const load = () => {
   request
-    .get<LServerResponse, LServerData>(
+    .get<{ data: PServerData }, PServerData>(
       "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + localuser.userName
     )
     .then((res: any) => {
@@ -215,40 +189,41 @@ const confirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request.post<ServerResponse, ServerData>("/user", user).then((res) => {
-        if (res) {
-          ElMessage({
-            message: "修改成功",
-            type: "success",
-          })
-          router.push("/home")
-        } else {
-          ElMessage({
-            message: "修改失败",
-            type: "error",
-          })
-        }
-      })
+      request
+        .post<{ data: RServerData }, RServerData>("/user", user)
+        .then((res) => {
+          if (res) {
+            ElMessage({
+              message: "修改成功",
+              type: "success",
+            })
+            router.push("/home")
+          } else {
+            ElMessage({
+              message: "修改失败",
+              type: "error",
+            })
+          }
+        })
     }
   })
 }
 
 const handleAvatarSuccess: UploadProps["onSuccess"] = (response) => {
   user.img = response
-  let newuserinfo = JSON.parse(localStorage.getItem("user") || "0")
+  let newuserinfo = store.user
   newuserinfo.img = response
   newuserinfo.userName = user.userName
-  localStorage.setItem("user", JSON.stringify(newuserinfo))
-  request.post<ServerResponse, ServerData>("/user", user).then((res) => {
-    if (res) {
-      ElMessage.success("修改成功")
-    } else {
-      ElMessage.error("修改失败")
-    }
-  })
-  setTimeout(() => {
-    location.reload()
-  }, 2000)
+  store.user = newuserinfo
+  request
+    .post<{ data: RServerData }, RServerData>("/user", user)
+    .then((res) => {
+      if (res) {
+        ElMessage.success("修改成功")
+      } else {
+        ElMessage.error("修改失败")
+      }
+    })
 }
 
 const beforeAvatarUpload: UploadProps["beforeUpload"] = (rawFile) => {

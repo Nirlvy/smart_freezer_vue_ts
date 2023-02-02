@@ -1,15 +1,14 @@
 <template>
   <div class="wrapper">
-    <div class="wrapper-overlay" :class="{ focus: blur }" />
+    <div class="wrapper-overlay" :class="{ focus: store.blur }" />
     <router-view />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { provide, ref } from "vue"
+import { useStore } from "../store/store"
 
-const blur = ref(false)
-provide("blur", blur)
+const store = useStore()
 </script>
 
 <style scoped>

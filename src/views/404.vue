@@ -4,10 +4,14 @@
       <div class="code">404</div>
       <div class="text">ops~ 你访问的页面不存在</div>
       <div class="back">
-        <router-link to="/" style="text-decoration:none">
+        <router-link to="/" style="text-decoration: none">
           <el-button type="primary" size="large">返回首页</el-button>
         </router-link>
-        <el-button style="margin-left: 150px;" type="primary" size="large" @click="goBack"
+        <el-button
+          style="margin-left: 150px"
+          type="primary"
+          size="large"
+          @click="router.go(-1)"
           >返回</el-button
         >
       </div>
@@ -19,9 +23,6 @@
 import { useRouter } from "vue-router"
 
 const router = useRouter()
-const goBack = () => {
-  router.go(-1)
-}
 </script>
 
 <style scoped>

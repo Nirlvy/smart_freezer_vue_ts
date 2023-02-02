@@ -200,7 +200,8 @@ import {
   Star,
 } from "@element-plus/icons-vue"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
-import { inject, reactive, ref } from "vue"
+import { reactive, ref } from "vue"
+import { useStore } from "../store/store"
 import request from "../utils/request"
 
 interface goodsinfo {
@@ -211,29 +212,13 @@ interface goodsinfo {
   upTime: string
   downTime: string | null
 }
-type records = Array<{
-  id: number
-  freezerId: number
-  name: string
-  state: boolean | string
-  upTime: string
-  downTime: string | null
-}>
-interface ServerData {
-  records: records
-  total: number
-}
 interface GServerData {
   id: number
   name: string
   disable: boolean
 }
-interface RServerData {
-  code: string
-  msg: string
-  data: object
-}
 
+const store = useStore()
 const ruleFormRef = ref<FormInstance>()
 const tableData = ref()
 const up_dialog = ref(false)
@@ -264,10 +249,8 @@ const up_form = reactive({
   num: "",
 })
 const multipleSelection = ref<goodsinfo[]>([])
-const user = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user") || "0")
-  : {}
-const server = inject("ServerIp")
+const user = store.user
+const server = store.ServerIp
 const options = ref()
 const goods = ref()
 const states = ref([
@@ -301,7 +284,7 @@ const up_rules = reactive<FormRules>({
 })
 const load = () => {
   request
-    .post<{ data: ServerData }, ServerData>(
+    .post<{ data: PServerData }, PServerData>(
       "/shelvesLog/page?pageNum=" +
         data.currentPage +
         "&pageSize=" +
@@ -323,8 +306,10 @@ const load = () => {
       tableData.value = res.records
       data.total = res.total
       data.freezerId = [
-        ...new Set(res.records.map((record) => record.freezerId)),
-      ]
+        ...new Set(
+          res.records.map((record: { freezerId: number }) => record.freezerId)
+        ),
+      ] as number[]
       options.value = Array.from(data.freezerId).map((item) => ({
         value: item,
         label: item,

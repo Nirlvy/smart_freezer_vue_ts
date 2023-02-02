@@ -77,7 +77,7 @@
       </el-col>
     </el-row>
   </div>
-  <el-row style="justify-content: center">
+  <el-row style="justify-content: center; height: 45%">
     <div id="shelves" class="charts" />
     <div id="sold" class="charts" />
     <div id="pie" class="charts" />
@@ -87,51 +87,13 @@
 <script lang="ts" setup>
 import * as echarts from "echarts"
 import { onMounted, reactive } from "vue"
-import { useRouter } from "vue-router"
+import { useStore } from "../store/store"
 import request from "../utils/request"
 
 onMounted(() => {
   valueInit()
 })
-
-interface HchartsData {
-  freezerId: number[]
-  totalfreezer: number
-  runfreezer: number
-  needfreezer: number
-}
-
-interface HServerData {
-  code: string
-  data: HchartsData
-  msg: string
-}
-
-interface LServerData {
-  code?: string
-  records: object
-  total: number
-}
-
-interface SServerDataData {
-  shelves: number[]
-  sold: number[]
-}
-
-interface SServerData {
-  code: string
-  data: SServerDataData
-  msg: string
-}
-
-interface RServerData {
-  code: string
-  data: object
-  msg: string
-}
-
-const router = useRouter()
-
+const store = useStore()
 const value = reactive({
   freezerId: [0],
   totalfreezer: 0,
@@ -140,7 +102,6 @@ const value = reactive({
   totalsold: 0,
   waiting: 0,
 })
-
 const month = [
   "一月",
   "二月",
@@ -155,14 +116,10 @@ const month = [
   "十一月",
   "十二月",
 ]
-
-const user = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user") || "0")
-  : {}
-
+const user = store.user
 const valueInit = () => {
   request
-    .get<{ data: LServerData }, LServerData>(
+    .get<{ data: PServerData }, PServerData>(
       "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + user.userName
     )
     .then((res) => {
@@ -170,7 +127,7 @@ const valueInit = () => {
         value.totalshelves = res.records[0].shelves
         value.totalsold = res.records[0].sold
         request
-          .get<{ data: HServerData }, HServerData>(
+          .get<{ data: RServerData }, RServerData>(
             "/freezer/home?id=" + user.id
           )
           .then((res) => {
@@ -261,7 +218,6 @@ const echartsInit = () => {
         radius: "50%",
         label: {
           formatter: "{b}:{c}瓶,{d}%",
-          // position: "inside",
         },
         data: [{}],
         emphasis: {
@@ -276,7 +232,7 @@ const echartsInit = () => {
   }
   if (value.freezerId.length != 0)
     request
-      .post<{ data: SServerData }, SServerData>(
+      .post<{ data: RServerData }, RServerData>(
         "/echarts/months",
         value.freezerId
       )
@@ -321,7 +277,7 @@ const echartsInit = () => {
 
 .charts {
   width: 30%;
-  height: 400px;
+  height: 100%;
   margin: 20px;
   border: 10px;
   padding-top: 30px;

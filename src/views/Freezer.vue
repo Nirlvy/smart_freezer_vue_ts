@@ -4,9 +4,9 @@
       <el-table :data="tableData" @row-click="handleRowClick">
         <el-table-column prop="id" label="ID" width="50px" />
         <el-table-column prop="location" label="位置" />
-        <el-table-column prop="capacity" label="容量" />
-        <el-table-column prop="shelves" label="在架" />
-        <el-table-column prop="enable" label="启用">
+        <el-table-column prop="capacity" label="容量" width="60px" />
+        <el-table-column prop="shelves" label="在架" width="60px" />
+        <el-table-column prop="enable" label="启用" width="60px">
           <template #default="scope">
             <el-switch
               v-model="scope.row.enable"
@@ -17,7 +17,7 @@
             />
           </template>
         </el-table-column>
-        <el-table-column label="需要补充">
+        <el-table-column label="需要补充" width="80px">
           <template #default="scope">
             <el-switch
               v-model="scope.row.need"
@@ -32,81 +32,138 @@
     </div>
     <div class="right">
       <div class="ru">
-        <el-descriptions title="冰柜信息" :column="3" border>
+        <el-descriptions class="des" title="冰柜信息" :column="4" border>
           <template #extra>
-            <el-button type="primary">重置</el-button>
+            <el-button type="primary" @click="click">编辑</el-button>
           </template>
-          <el-descriptions-item>
+          <el-descriptions-item min-width="90px" label-align="center">
             <template #label>
               <div class="cell-item">
                 <el-icon>
-                  <user />
+                  <User />
                 </el-icon>
-                Username
+                设备ID
               </div>
             </template>
-            kooriookami
+            {{ freezerinfo.id }}
           </el-descriptions-item>
-          <el-descriptions-item>
+          <el-descriptions-item min-width="80px" label-align="center">
             <template #label>
               <div class="cell-item">
                 <el-icon>
-                  <iphone />
+                  <Location />
                 </el-icon>
-                Telephone
+                位置
               </div>
             </template>
-            18100000000
+            {{ freezerinfo.location }}
           </el-descriptions-item>
-          <el-descriptions-item>
+          <el-descriptions-item min-width="100px" label-align="center">
             <template #label>
               <div class="cell-item">
                 <el-icon>
-                  <location />
+                  <Box />
                 </el-icon>
-                Place
+                容量
               </div>
             </template>
-            Suzhou
+            {{ freezerinfo.capacity }}
           </el-descriptions-item>
-          <el-descriptions-item>
+          <el-descriptions-item min-width="100px" label-align="center">
             <template #label>
               <div class="cell-item">
                 <el-icon>
-                  <tickets />
+                  <ShoppingTrolley />
                 </el-icon>
-                Remarks
+                在架
               </div>
             </template>
-            <el-tag size="small">School</el-tag>
+            {{ freezerinfo.shelves }}
           </el-descriptions-item>
-          <el-descriptions-item>
+          <el-descriptions-item label-align="center">
             <template #label>
               <div class="cell-item">
                 <el-icon>
-                  <office-building />
+                  <Connection />
                 </el-icon>
-                Address
+                启用
               </div>
             </template>
-            No.1188, Wuzhong Avenue, Wuzhong District, Suzhou, Jiangsu Province
+            {{ freezerinfo.enable }}
+          </el-descriptions-item>
+          <el-descriptions-item label-align="center">
+            <template #label>
+              <div class="cell-item">
+                <el-icon>
+                  <Odometer />
+                </el-icon>
+                需求
+              </div>
+            </template>
+            {{ freezerinfo.need }}
+          </el-descriptions-item>
+          <el-descriptions-item label-align="center">
+            <template #label>
+              <div class="cell-item">
+                <el-icon>
+                  <Clock />
+                </el-icon>
+                最后补充
+              </div>
+            </template>
+            {{ freezerinfo.lastSupply }}
+          </el-descriptions-item>
+          <el-descriptions-item label-align="center">
+            <template #label>
+              <div class="cell-item">
+                <el-icon>
+                  <Clock />
+                </el-icon>
+                设置时间
+              </div>
+            </template>
+            {{ freezerinfo.releaseTime }}
           </el-descriptions-item>
         </el-descriptions>
+        <div id="main" class="echarts" />
       </div>
       <div class="rd" id="container" />
     </div>
+    <el-drawer v-model="drawer">
+      <template #header>
+        <h4>set title by slot</h4>
+      </template>
+      <template #default> </template>
+      <template #footer>
+        <div style="flex: auto">
+          <el-button @click="cancelClick">cancel</el-button>
+          <el-button type="primary" @click="confirmClick"> confirm </el-button>
+        </div>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { inject, onMounted, reactive, ref } from "vue"
+import { onMounted, reactive, ref } from "vue"
+import {
+  Box,
+  Clock,
+  Connection,
+  Location,
+  Odometer,
+  ShoppingTrolley,
+  User,
+} from "@element-plus/icons-vue"
 import request from "../utils/request"
+import * as echarts from "echarts"
+import { useStore } from "../store/store"
 
+const store = useStore()
 const tableData = ref()
-const user = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user") || "0")
-  : {}
-const server = inject("ServerIp")
+const user = store.user
+const server = store.ServerIp
+const drawer = ref(false)
 const freezerinfo = reactive({
   id: "",
   location: "",
@@ -160,6 +217,79 @@ const initMap = () => {
     ],
   })
 }
+const initEcharts = (row: any) => {
+  var chartDom = document.getElementById("main")
+  var myChart = echarts.init(chartDom as HTMLElement)
+  var option = {
+    // title: {
+    //   text: "销售情况",
+    // },
+    tooltip: {
+      trigger: "axis",
+    },
+    legend: {
+      data: [] as string[],
+    },
+    grid: {
+      left: "3%",
+      right: "4%",
+      bottom: "3%",
+      containLabel: true,
+    },
+    toolbox: {
+      feature: {
+        saveAsImage: {},
+      },
+    },
+    xAxis: {
+      type: "category",
+      boundaryGap: false,
+      data: [
+        "一月",
+        "二月",
+        "三月",
+        "四月",
+        "五月",
+        "六月",
+        "七月",
+        "八月",
+        "九月",
+        "十月",
+        "十一月",
+        "十二月",
+      ],
+    },
+    yAxis: {
+      type: "value",
+    },
+    series: [] as any,
+  }
+  request
+    .get<{ data: RServerData }, RServerData>(
+      server + "/shelvesLog/freezer?id=" + row.id
+    )
+    .then((res) => {
+      console.log(res)
+      option.legend.data = [
+        ...res.data[0],
+        ...res.data[0].map((item: string) => `${item}售出`),
+      ]
+      for (var i = 0; i < res.data[1].length; i++) {
+        option.series.push({
+          name: res.data[0][i],
+          type: "line",
+          data: res.data[1][i],
+        })
+        option.series.push({
+          name: res.data[0].map((item: string) => `${item}售出`)[i],
+          type: "line",
+          data: res.data[2][i],
+        })
+      }
+      console.log(option)
+      option && myChart.setOption(option, true)
+    })
+}
 const load = () => {
   request.get(server + "/freezer/list?id=" + user.id).then((res) => {
     tableData.value = res
@@ -167,7 +297,21 @@ const load = () => {
 }
 load()
 const handleChange = (row: any) => {}
-const handleRowClick = (row: number) => {}
+const handleRowClick = (row: any) => {
+  Object.assign(freezerinfo, row)
+  for (const key in freezerinfo) {
+    if (freezerinfo[key] === true) {
+      freezerinfo[key] = "是"
+    } else if (freezerinfo[key] === false) {
+      freezerinfo[key] = "否"
+    }
+  }
+  initEcharts(row)
+}
+const click = () => {
+  drawer.value = true
+  console.log(drawer.value)
+}
 </script>
 
 <style scoped>
@@ -175,20 +319,21 @@ const handleRowClick = (row: number) => {}
   width: 100%;
   height: 50%;
 }
-.bg,
-.left,
-.right {
-  width: 100%;
-  height: 100%;
-}
 .bg {
+  height: 100%;
   display: flex;
   padding: 10px;
 }
 .left {
+  height: 100%;
+  width: 30%;
   margin-right: 5px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px #999;
 }
 .right {
+  height: 100%;
+  width: 70%;
   display: flex;
   flex-direction: column;
 }
@@ -197,18 +342,27 @@ const handleRowClick = (row: number) => {}
   flex: 1;
   height: 50%;
   width: 100%;
-}
-.left,
-.ru,
-.rd {
   border-radius: 5px;
   box-shadow: 2px 2px 5px #999;
 }
 .ru {
-  padding: 10px;
   margin-bottom: 5px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .rd {
   margin-top: 5px;
+}
+.cell-item {
+  align-items: right;
+}
+.des {
+  padding: 10px;
+}
+.echarts {
+  width: 100%;
+  flex: 1;
+  max-height: 60%;
 }
 </style>

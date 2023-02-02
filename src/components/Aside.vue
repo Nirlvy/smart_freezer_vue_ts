@@ -66,7 +66,7 @@
       </el-sub-menu>
     </el-menu>
   </el-scrollbar>
-  <div @click="toggleCollapse" style="position: fixed; bottom: 0">
+  <div @click="isCollapse = !isCollapse" style="position: fixed; bottom: 0">
     <el-icon
       style="margin-bottom: 15px; margin-left: 15px"
       :size="30"
@@ -90,20 +90,18 @@ import {
   DataAnalysis,
 } from "@element-plus/icons-vue"
 import { onBeforeRouteUpdate, useRoute } from "vue-router"
+import { useStore } from "../store/store"
 
 const isCollapse = ref(false)
 const route = useRoute()
+const store = useStore()
 const curPath = ref(route.fullPath)
-const user = localStorage.getItem("user")
-  ? JSON.parse(localStorage.getItem("user") || "0")
-  : null
+const user = store.user
 const menus = user.menus
 
-const toggleCollapse = () => {
-  isCollapse.value = !isCollapse.value
-}
-onBeforeRouteUpdate((to) => {
+onBeforeRouteUpdate((to, _from, next) => {
   curPath.value = to.path
+  next()
 })
 </script>
 

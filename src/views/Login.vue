@@ -1,9 +1,9 @@
 <template>
   <div
     class="windows"
-    :class="{ focus: blur }"
-    @mouseenter="blur = true"
-    @mouseleave="blur = false"
+    :class="{ focus: store.blur }"
+    @mouseenter="store.blur = true"
+    @mouseleave="store.blur = false"
   >
     <div style="margin: 20px 0; text-align: center; font-size: 24px">
       <b>智能冰柜管理系统</b>
@@ -55,12 +55,13 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, reactive, ref } from "vue"
+import { reactive, ref } from "vue"
 import { Lock, UserFilled } from "@element-plus/icons-vue"
 import request from "../utils/request"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { useRouter } from "vue-router"
 import { setRotes } from "../router"
+import { useStore } from "../store/store"
 
 interface objectdata {
   id: number
@@ -68,7 +69,7 @@ interface objectdata {
   password?: string
   token: string
   img: string
-  menus: Int32Array
+  menus: [number]
   role: string
 }
 
@@ -82,7 +83,7 @@ const user = reactive({
   userName: "",
   password: "",
 })
-const blur = inject("blur")
+const store = useStore()
 const router = useRouter()
 const rules = reactive<FormRules>({
   userName: [
@@ -106,7 +107,7 @@ const login = async (formEl: FormInstance | undefined) => {
           if (res.code === "200") {
             const userinfo = { ...res.data }
             delete userinfo.password
-            localStorage.setItem("user", JSON.stringify(userinfo))
+            store.user = userinfo
             setRotes()
             router.push("/manage/home")
             ElMessage.success("登录成功")

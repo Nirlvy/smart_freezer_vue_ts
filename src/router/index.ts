@@ -26,8 +26,8 @@ export const router = createRouter({
 })
 
 export const setRotes = () => {
-  const store = localStorage.getItem("user")
-  if (store) {
+  const user = sessionStorage.getItem("main")
+  if (user) {
     const manageRoutes = {
       path: "/manage",
       component: () => import("../components/Manage.vue"),
@@ -43,7 +43,7 @@ export const setRotes = () => {
         },
       ],
     }
-    const menus = JSON.parse(store)
+    const menus = JSON.parse(user).user
     if (menus.menus.includes(3)) {
       let itemMenu = {
         path: "freezer",

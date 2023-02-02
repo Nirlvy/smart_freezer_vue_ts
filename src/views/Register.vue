@@ -1,9 +1,9 @@
 <template>
   <div
     class="windows"
-    :class="{ focus: blur }"
-    @mouseenter="blur = true"
-    @mouseleave="blur = false"
+    :class="{ focus: store.blur }"
+    @mouseenter="store.blur = true"
+    @mouseleave="store.blur = false"
   >
     <div style="margin: 20px 0; text-align: center; font-size: 24px">
       <b>注册</b>
@@ -71,29 +71,20 @@
 </template>
 
 <script lang="ts" setup>
-import { inject, reactive, ref } from "vue"
+import { reactive, ref } from "vue"
 import { Lock, UserFilled } from "@element-plus/icons-vue"
 import request from "../utils/request"
 import { ElMessage, FormInstance, FormRules } from "element-plus"
 import { useRouter } from "vue-router"
 import { setRotes } from "../router"
-
-interface ServerResponse {
-  data: ServerData
-}
-
-interface ServerData {
-  code: string
-  data: Array<string>
-  msg: string
-}
+import { useStore } from "../store/store"
 
 const user = reactive({
   userName: "",
   password: "",
   confirm_password: "",
 })
-const blur = inject("blur")
+const store = useStore()
 const router = useRouter()
 
 const ruleFormRef = ref<FormInstance>()
@@ -139,11 +130,11 @@ const register = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       request
-        .post<ServerResponse, ServerData>("/user/register", user)
+        .post<{ data: RServerData }, RServerData>("/user/register", user)
         .then((res) => {
           if (res.code === "200") {
             ElMessage.success("注册成功")
-            localStorage.setItem("user", JSON.stringify(res.data))
+            store.user = res.data
             setRotes()
             router.push("/manage/home")
           } else {

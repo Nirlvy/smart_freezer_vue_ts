@@ -8,3 +8,9 @@ declare interface PServerData {
   records: any
   total: number
 }
+declare interface SecurityJsCode {
+  securityJsCode: string
+}
+declare interface Window {
+  _AMapSecurityConfig: SecurityJsCode
+}

@@ -8,13 +8,13 @@
     <div style="margin: 20px 0; text-align: center; font-size: 24px">
       <b>智能冰柜管理系统</b>
     </div>
-    <el-form :model="user" :rules="rules" ref="ruleFormRef">
+    <el-form ref="ruleFormRef" :model="user" :rules="rules">
       <el-form-item prop="userName">
         <el-input
+          v-model="user.userName"
           size="large"
           style="margin: 10px 0"
           :prefix-icon="UserFilled"
-          v-model="user.userName"
           placeholder="用户名"
           autocomplete
           clearable
@@ -22,11 +22,11 @@
       </el-form-item>
       <el-form-item prop="password">
         <el-input
+          v-model="user.password"
           size="large"
           style="margin: 10px 0"
           :prefix-icon="Lock"
           show-password
-          v-model="user.password"
           placeholder="密码"
           autocomplete
           clearable
@@ -55,13 +55,13 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue"
-import { Lock, UserFilled } from "@element-plus/icons-vue"
-import request from "../utils/request"
-import { ElMessage, FormInstance, FormRules } from "element-plus"
-import { useRouter } from "vue-router"
-import { setRotes } from "../router"
-import { useStore } from "../store/store"
+import { reactive, ref } from 'vue'
+import { Lock, UserFilled } from '@element-plus/icons-vue'
+import request from '../utils/request'
+import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { setRotes } from '../router'
+import { useStore } from '../store/store'
 
 interface objectdata {
   id: number
@@ -80,19 +80,19 @@ interface ServerData {
 }
 
 const user = reactive({
-  userName: "",
-  password: "",
+  userName: '',
+  password: '',
 })
 const store = useStore()
 const router = useRouter()
 const rules = reactive<FormRules>({
   userName: [
-    { required: true, message: "请输入用户名", trigger: "blur" },
-    { min: 1, max: 20, message: "长度应该为1到20位", trigger: "blur" },
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 1, max: 20, message: '长度应该为1到20位', trigger: 'blur' },
   ],
   password: [
-    { required: true, message: "请输入密码", trigger: "blur" },
-    { min: 6, max: 30, message: "长度应该为6到30位", trigger: "blur" },
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, max: 30, message: '长度应该为6到30位', trigger: 'blur' },
   ],
 })
 const ruleFormRef = ref<FormInstance>()
@@ -102,15 +102,15 @@ const login = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       request
-        .post<{ data: ServerData }, ServerData>("/user/login", user)
+        .post<{ data: ServerData }, ServerData>('/user/login', user)
         .then((res) => {
-          if (res.code === "200") {
+          if (res.code === '200') {
             const userinfo = { ...res.data }
             delete userinfo.password
             store.user = userinfo
             setRotes()
-            router.push("/manage/home")
-            ElMessage.success("登录成功")
+            router.push('/manage/home')
+            ElMessage.success('登录成功')
           } else {
             ElMessage.error(res.msg)
           }

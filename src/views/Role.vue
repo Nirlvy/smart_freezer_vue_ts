@@ -24,9 +24,9 @@
     <div class="bg_card">
       <p>商品管理</p>
       <el-transfer
+        v-model="disable"
         class="transfer"
         :titles="['启用', '禁用']"
-        v-model="disable"
         :data="tdata"
         @change="change"
         @right-check-change="rchange"
@@ -73,10 +73,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ElMessage, ElTree } from "element-plus"
-import { ref } from "vue"
-import { useStore } from "../store/store"
-import request from "../utils/request"
+import { ElMessage, ElTree } from 'element-plus'
+import { ref } from 'vue'
+import global from '../types/interface'
+import { useStore } from '../store/store'
+import request from '../utils/request'
 
 interface Tree {
   id?: number
@@ -102,66 +103,66 @@ const server = store.ServerIp
 const tdata = ref<tdataOption[]>()
 const disable = ref([] as number[])
 const delGoods = ref([] as number[])
-const newGoods = ref("")
-const value = ref("admin")
+const newGoods = ref('')
+const value = ref('admin')
 const treeRef = ref<InstanceType<typeof ElTree>>()
 
 const selectOption = [
   {
-    value: "admin",
-    label: "管理员",
+    value: 'admin',
+    label: '管理员',
   },
   {
-    value: "user",
-    label: "用户",
+    value: 'user',
+    label: '用户',
   },
 ]
 
 const props = {
-  children: "children",
-  label: "label",
+  children: 'children',
+  label: 'label',
 }
 
 const data: Tree[] = [
   {
     id: 1,
-    label: "系统首页",
+    label: '系统首页',
   },
   {
     id: 2,
-    label: "管理菜单",
+    label: '管理菜单',
     children: [
       {
         id: 3,
-        label: "设备管理",
+        label: '设备管理',
       },
       {
         id: 4,
-        label: "商品管理",
+        label: '商品管理',
       },
       {
         id: 5,
-        label: "访问控制",
+        label: '访问控制',
       },
     ],
   },
   {
     id: 6,
-    label: "记录菜单",
+    label: '记录菜单',
     children: [
       {
         id: 7,
-        label: "用户记录",
+        label: '用户记录',
       },
     ],
   },
 ]
 
 const load = () => {
-  request.get("/roleMenu/" + value.value).then((res) => {
-    treeRef.value!.setCheckedKeys(res.data)
+  request.get('/roleMenu/' + value.value).then((res) => {
+    treeRef.value?.setCheckedKeys(res.data)
   })
-  request.get<{ data: GServerData[] }, GServerData[]>("/goods").then((res) => {
+  request.get<{ data: GServerData[] }, GServerData[]>('/goods').then((res) => {
     tdata.value = Array.from(res).map((item) => ({
       key: item.id,
       label: item.name,
@@ -176,53 +177,55 @@ load()
 const save = () => {
   request
     .post<{ data: IData }, IData>(
-      "/roleMenu/" + value.value,
-      treeRef.value!.getCheckedKeys(false)
+      '/roleMenu/' + value.value,
+      treeRef.value?.getCheckedKeys(false)
     )
     .then((res) => {
-      if (res.code === "200") {
-        ElMessage.success("修改成功")
+      if (res.code === '200') {
+        ElMessage.success('修改成功')
       }
     })
     .catch((e) => {
-      ElMessage.error("系统错误请联系管理员:" + e)
+      ElMessage.error('系统错误请联系管理员:' + e)
     })
 }
 const newUp = () => {
   if (
-    newGoods.value != "" &&
+    newGoods.value != '' &&
     !tdata.value?.some((item: tdataOption) =>
       item.label.includes(newGoods.value)
     )
   ) {
     request
-      .get<{ data: RServerData }, RServerData>(
-        server + "/goods/up?name=" + newGoods.value
+      .get<{ data: global.RServerData }, global.RServerData>(
+        server + '/goods/up?name=' + newGoods.value
       )
       .then((res) => {
-        if (res.code == "200") {
-          ElMessage.success("新增成功")
+        if (res.code == '200') {
+          ElMessage.success('新增成功')
           load()
         } else {
-          ElMessage.error("新增失败:" + res.msg)
+          ElMessage.error('新增失败:' + res.msg)
         }
       })
   } else {
-    ElMessage.error("输入框不能为空或者重复")
+    ElMessage.error('输入框不能为空或者重复')
   }
 }
 const del = () => {
   request
-    .delete<{ data: RServerData }, RServerData>(server + "/goods/del", {
-      data: delGoods.value,
-    })
+    .delete<{ data: global.RServerData }, global.RServerData>(
+      server + '/goods/del',
+      {
+        data: delGoods.value,
+      }
+    )
     .then((res) => {
-      console.log(res)
-      if (res.code === "200") {
-        ElMessage.success("删除成功")
+      if (res.code === '200') {
+        ElMessage.success('删除成功')
         load()
       } else {
-        ElMessage.error("删除失败:" + res.msg)
+        ElMessage.error('删除失败:' + res.msg)
       }
     })
 }
@@ -237,13 +240,13 @@ const change = () => {
       }
     })
   request
-    .post<{ data: RServerData }, RServerData>(
-      server + "/goods/change",
+    .post<{ data: global.RServerData }, global.RServerData>(
+      server + '/goods/change',
       filteredArray
     )
     .then((res) => {
-      if (res.code != "200") {
-        ElMessage.error("切换失败:" + res.msg)
+      if (res.code != '200') {
+        ElMessage.error('切换失败:' + res.msg)
         load()
       }
     })

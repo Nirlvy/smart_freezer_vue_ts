@@ -66,7 +66,7 @@
       </el-sub-menu>
     </el-menu>
   </el-scrollbar>
-  <div @click="isCollapse = !isCollapse" style="position: fixed; bottom: 0">
+  <div style="position: fixed; bottom: 0" @click="isCollapse = !isCollapse">
     <el-icon
       style="margin-bottom: 15px; margin-left: 15px"
       :size="30"
@@ -78,7 +78,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue"
+import { ref } from 'vue'
 import {
   House,
   Refrigerator,
@@ -88,9 +88,9 @@ import {
   Fold,
   Files,
   DataAnalysis,
-} from "@element-plus/icons-vue"
-import { onBeforeRouteUpdate, useRoute } from "vue-router"
-import { useStore } from "../store/store"
+} from '@element-plus/icons-vue'
+import { onBeforeRouteUpdate, useRoute } from 'vue-router'
+import { useStore } from '../store/store'
 
 const isCollapse = ref(false)
 const route = useRoute()

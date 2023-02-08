@@ -1,8 +1,8 @@
 <template>
   <div style="padding: 10px 0">
     <el-select
-      class="ml-10"
       v-model="input.id"
+      class="ml-10"
       placeholder="冰柜ID"
       style="width: 220px"
       multiple
@@ -19,8 +19,8 @@
       />
     </el-select>
     <el-select
-      class="ml-10"
       v-model="input.name"
+      class="ml-10"
       placeholder="商品名"
       multiple
       collapse-tags
@@ -36,8 +36,8 @@
       />
     </el-select>
     <el-select
-      class="ml-10"
       v-model="input.state"
+      class="ml-10"
       placeholder="状态"
       style="width: 220px"
       clearable
@@ -50,8 +50,8 @@
       />
     </el-select>
     <el-date-picker
-      class="ml-10"
       v-model="input.upDate"
+      class="ml-10"
       type="date"
       placeholder="上架日期"
       format="YYYY-MM-DD"
@@ -59,14 +59,15 @@
       @clear="load()"
     />
     <el-date-picker
-      class="ml-10"
       v-model="input.downDate"
+      class="ml-10"
       type="date"
       placeholder="下架日期"
       format="YYYY-MM-DD"
       value-format="YYYY-MM-DD"
       @clear="load()"
     />
+    <el-button class="ml-10" :icon="Search" @click="clear()"> 清除 </el-button>
     <el-button type="primary" class="ml-10" :icon="Search" @click="load()">
       搜索
     </el-button>
@@ -79,8 +80,8 @@
     <el-popconfirm
       title="确定批量删除?"
       width="200"
-      @confirm="batchDelete"
       cancel-button-text="我再想想"
+      @confirm="batchDelete"
     >
       <template #reference>
         <el-button type="danger" :icon="DocumentDelete">批量删除</el-button>
@@ -92,7 +93,7 @@
   </div>
 
   <el-dialog v-model="up_dialog" title="新上架" width="400px">
-    <el-form :model="up_form" :rules="up_rules" ref="ruleFormRef" status-icon>
+    <el-form ref="ruleFormRef" :model="up_form" :rules="up_rules" status-icon>
       <el-form-item label="冰柜" :label-width="70" prop="id">
         <el-select v-model="up_form.id" placeholder="冰柜ID" clearable>
           <el-option
@@ -165,8 +166,8 @@
         <el-popconfirm
           title="确定删除?"
           width="200"
-          @confirm="handleDelete(scope.row)"
           cancel-button-text="我再想想"
+          @confirm="handleDelete(scope.row)"
         >
           <template #reference>
             <el-button size="small" type="danger" :icon="DocumentDelete">
@@ -180,8 +181,8 @@
   <div class="ml-10" style="padding: 10px 0">
     <el-pagination
       v-model:current-page="data.currentPage"
-      :page-sizes="[5, 10, 15]"
       v-model:page-size="data.pageSize"
+      :page-sizes="[5, 10, 15]"
       :background="true"
       layout="total, sizes, prev, pager, next, jumper"
       :total="data.total"
@@ -198,11 +199,28 @@ import {
   DocumentCopy,
   Plus,
   Star,
-} from "@element-plus/icons-vue"
-import { ElMessage, FormInstance, FormRules } from "element-plus"
-import { reactive, ref } from "vue"
-import { useStore } from "../store/store"
-import request from "../utils/request"
+} from '@element-plus/icons-vue'
+import {
+  ElButton,
+  ElDatePicker,
+  ElDialog,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElMessage,
+  ElOption,
+  ElPagination,
+  ElPopconfirm,
+  ElSelect,
+  ElSwitch,
+  ElTable,
+  ElTableColumn,
+  FormInstance,
+  FormRules,
+} from 'element-plus'
+import { reactive, ref } from 'vue'
+import { useStore } from '../store/store'
+import request from '../utils/request'
 
 interface goodsinfo {
   id: number
@@ -231,22 +249,22 @@ const data = reactive({
 const input = reactive({
   id: [] as number[],
   name: [] as string[],
-  state: "",
-  upDate: "",
-  downDate: "",
+  state: '',
+  upDate: '',
+  downDate: '',
 })
 const edit_form = reactive({
-  id: "",
-  freezerId: "",
-  name: "",
-  state: "",
-  upTime: "",
-  downTime: "",
+  id: '',
+  freezerId: '',
+  name: '',
+  state: '',
+  upTime: '',
+  downTime: '',
 })
 const up_form = reactive({
-  id: "",
-  name: "",
-  num: "",
+  id: '',
+  name: '',
+  num: '',
 })
 const multipleSelection = ref<goodsinfo[]>([])
 const user = store.user
@@ -255,29 +273,29 @@ const options = ref()
 const goods = ref()
 const states = ref([
   {
-    value: "true",
-    label: "未售出",
+    value: 'true',
+    label: '未售出',
   },
   {
-    value: "false",
-    label: "已售出",
+    value: 'false',
+    label: '已售出',
   },
 ])
 const tableRowClassName = ({ row }: { row: goodsinfo }) => {
   if (row.state == false) {
-    return "success-row"
+    return 'success-row'
   }
-  return ""
+  return ''
 }
 const up_rules = reactive<FormRules>({
-  id: [{ required: true, message: "请选择冰柜", trigger: "blur" }],
-  name: [{ required: true, message: "请选择商品名", trigger: "blur" }],
+  id: [{ required: true, message: '请选择冰柜', trigger: 'blur' }],
+  name: [{ required: true, message: '请选择商品名', trigger: 'blur' }],
   num: [
-    { required: true, message: "请输入上架数量", trigger: "blur" },
+    { required: true, message: '请输入上架数量', trigger: 'blur' },
     {
-      type: "number",
-      message: "请输入数字",
-      trigger: "blur",
+      type: 'number',
+      message: '请输入数字',
+      trigger: 'blur',
       transform: (value) => Number(value),
     },
   ],
@@ -285,17 +303,17 @@ const up_rules = reactive<FormRules>({
 const load = () => {
   request
     .post<{ data: PServerData }, PServerData>(
-      "/shelvesLog/page?pageNum=" +
+      '/shelvesLog/page?pageNum=' +
         data.currentPage +
-        "&pageSize=" +
+        '&pageSize=' +
         data.pageSize +
-        "&id=" +
+        '&id=' +
         user.id +
-        "&state=" +
+        '&state=' +
         input.state +
-        "&upTime=" +
+        '&upTime=' +
         input.upDate +
-        "&downTime=" +
+        '&downTime=' +
         input.downDate,
       {
         freezerId: Array.from(input.id),
@@ -317,7 +335,7 @@ const load = () => {
     })
   if (!goods.value)
     request
-      .get<{ data: GServerData[] }, GServerData[]>("/goods")
+      .get<{ data: GServerData[] }, GServerData[]>('/goods')
       .then((res) => {
         goods.value = Array.from(res).map((item) => ({
           value: item.name,
@@ -327,23 +345,32 @@ const load = () => {
       })
 }
 load()
+const clear = () => {
+  Object.assign(input, {
+    id: [] as number[],
+    name: [] as string[],
+    state: '',
+    upDate: '',
+    downDate: '',
+  })
+}
 const selection = (val: goodsinfo[]) => {
   multipleSelection.value = val
 }
 const handleDelete = (row: string) => {
   Object.assign(edit_form, row)
-  request.delete("/shelvesLog/" + edit_form.id).then((res) => {
+  request.delete('/shelvesLog/' + edit_form.id).then((res) => {
     if (res) {
-      ElMessage.success("删除成功！")
+      ElMessage.success('删除成功！')
       load()
     }
   })
 }
 const batchDelete = () => {
   let ids = multipleSelection.value.map((v) => v.id)
-  request.delete("/shelvesLog/del/batch", { data: ids }).then((res) => {
+  request.delete('/shelvesLog/del/batch', { data: ids }).then((res) => {
     if (res) {
-      ElMessage.success("删除成功！")
+      ElMessage.success('删除成功！')
       load()
     }
   })
@@ -353,16 +380,16 @@ const Change = (row: { state: boolean }) => {
     Object.assign(edit_form, row)
     const currentDate = new Date()
     const year = currentDate.getFullYear()
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, "0")
-    const day = currentDate.getDate().toString().padStart(2, "0")
-    const hours = currentDate.getHours().toString().padStart(2, "0")
-    const minutes = currentDate.getMinutes().toString().padStart(2, "0")
-    const seconds = currentDate.getSeconds().toString().padStart(2, "0")
+    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
+    const day = currentDate.getDate().toString().padStart(2, '0')
+    const hours = currentDate.getHours().toString().padStart(2, '0')
+    const minutes = currentDate.getMinutes().toString().padStart(2, '0')
+    const seconds = currentDate.getSeconds().toString().padStart(2, '0')
     const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
     edit_form.downTime = time
-    request.post("/shelvesLog/sold", edit_form).then((res) => {
+    request.post('/shelvesLog/sold', edit_form).then((res) => {
       if (res) {
-        ElMessage.success("已设置为售出")
+        ElMessage.success('已设置为售出')
         load()
       }
     })
@@ -374,16 +401,16 @@ const up_crofirm = async (formEl: FormInstance | undefined) => {
     if (valid) {
       request
         .post<{ data: RServerData }, RServerData>(
-          "/shelvesLog/up?id=" +
+          '/shelvesLog/up?id=' +
             up_form.id +
-            "&name=" +
+            '&name=' +
             up_form.name +
-            "&num=" +
+            '&num=' +
             up_form.num
         )
         .then((res) => {
-          if (res.code === "200") {
-            ElMessage.success("上架成功")
+          if (res.code === '200') {
+            ElMessage.success('上架成功')
             up_dialog.value = false
             load()
           } else {
@@ -395,27 +422,27 @@ const up_crofirm = async (formEl: FormInstance | undefined) => {
 }
 const exp = async () => {
   request
-    .get(server + "/shelvesLog/export?id=" + user.id, {
-      responseType: "blob",
+    .get(server + '/shelvesLog/export?id=' + user.id, {
+      responseType: 'blob',
     })
     .then((response) => {
       if (response) {
         const blob = new Blob([response.data], {
-          type: "application/vnd.ms-excel",
+          type: 'application/vnd.ms-excel',
         })
-        const link = document.createElement("a")
+        const link = document.createElement('a')
         link.href = window.URL.createObjectURL(blob)
-        link.download = "data.xlsx"
+        link.download = 'data.xlsx'
         link.click()
         window.URL.revokeObjectURL(link.href)
         document.body.removeChild(link)
       } else {
-        alert("请求失败,请稍后再试")
+        alert('请求失败,请稍后再试')
       }
     })
     .catch((error) => {
       console.log(error)
-      alert("请求失败,请稍后再试")
+      alert('请求失败,请稍后再试')
     })
 }
 </script>

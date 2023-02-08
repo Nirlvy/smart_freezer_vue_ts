@@ -31,7 +31,7 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <img class="avatar" v-if="user.img != null" :src="user.img" />
+      <img v-if="user.img != null" class="avatar" :src="user.img" />
       <span style="margin-right: 20px; line-height: 30px">{{
         user.userName
       }}</span>
@@ -40,11 +40,11 @@
 </template>
 
 <script lang="ts" setup>
-import { Setting } from "@element-plus/icons-vue"
-import { ElMessage } from "element-plus"
-import { ref, watch } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { useStore } from "../store/store"
+import { Setting } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useStore } from '../store/store'
 
 const route = useRoute()
 const router = useRouter()
@@ -56,9 +56,9 @@ watch(route, () => {
 const user = store.user
 
 const logout = () => {
-  router.push("/login")
-  localStorage.removeItem("user")
-  ElMessage.success("退出成功")
+  router.push('/login')
+  localStorage.removeItem('user')
+  ElMessage.success('退出成功')
 }
 </script>
 

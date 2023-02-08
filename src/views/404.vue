@@ -12,15 +12,15 @@
           type="primary"
           size="large"
           @click="router.go(-1)"
-          >返回</el-button
-        >
+          >返回
+        </el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useRouter } from "vue-router"
+import { useRouter } from 'vue-router'
 
 const router = useRouter()
 </script>

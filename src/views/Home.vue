@@ -85,10 +85,11 @@
 </template>
 
 <script lang="ts" setup>
-import * as echarts from "echarts"
-import { onMounted, reactive } from "vue"
-import { useStore } from "../store/store"
-import request from "../utils/request"
+import * as echarts from 'echarts'
+import { ElRow, ElCol, ElCard } from 'element-plus'
+import { onMounted, reactive } from 'vue'
+import { useStore } from '../store/store'
+import request from '../utils/request'
 
 onMounted(() => {
   valueInit()
@@ -103,32 +104,32 @@ const value = reactive({
   waiting: 0,
 })
 const month = [
-  "一月",
-  "二月",
-  "三月",
-  "四月",
-  "五月",
-  "六月",
-  "七月",
-  "八月",
-  "九月",
-  "十月",
-  "十一月",
-  "十二月",
+  '一月',
+  '二月',
+  '三月',
+  '四月',
+  '五月',
+  '六月',
+  '七月',
+  '八月',
+  '九月',
+  '十月',
+  '十一月',
+  '十二月',
 ]
 const user = store.user
 const valueInit = () => {
   request
     .get<{ data: PServerData }, PServerData>(
-      "/user/page?pageNum=1" + "&pageSize=1" + "&userName=" + user.userName
+      '/user/page?pageNum=1' + '&pageSize=1' + '&userName=' + user.userName
     )
     .then((res) => {
-      if (res.code != "401") {
+      if (res.code != '401') {
         value.totalshelves = res.records[0].shelves
         value.totalsold = res.records[0].sold
         request
           .get<{ data: RServerData }, RServerData>(
-            "/freezer/home?id=" + user.id
+            '/freezer/home?id=' + user.id
           )
           .then((res) => {
             value.totalfreezer = res.data.totalfreezer
@@ -142,54 +143,54 @@ const valueInit = () => {
 }
 
 const echartsInit = () => {
-  var shelvesChartDom = document.getElementById("shelves")
+  var shelvesChartDom = document.getElementById('shelves')
   var shelvesChart = echarts.init(shelvesChartDom as HTMLElement)
   var shelvesOption = {
     title: {
-      left: "center",
-      text: "每月上架数",
+      left: 'center',
+      text: '每月上架数',
     },
     xAxis: {
-      type: "category",
+      type: 'category',
       data: month,
     },
     yAxis: {
-      type: "value",
+      type: 'value',
       axisLabel: {
-        formatter: "{value} 个",
+        formatter: '{value} 个',
       },
     },
     series: [
       {
         data: [0],
-        type: "line",
+        type: 'line',
       },
     ],
     label: {
       show: true,
     },
   }
-  var soldChartDom = document.getElementById("sold")
+  var soldChartDom = document.getElementById('sold')
   var soldChart = echarts.init(soldChartDom as HTMLElement)
   var soldOption = {
     title: {
-      left: "center",
-      text: "每月售出数",
+      left: 'center',
+      text: '每月售出数',
     },
     xAxis: {
-      type: "category",
+      type: 'category',
       data: month,
     },
     yAxis: {
-      type: "value",
+      type: 'value',
       axisLabel: {
-        formatter: "{value} 个",
+        formatter: '{value} 个',
       },
     },
     series: [
       {
         data: [0],
-        type: "line",
+        type: 'line',
       },
     ],
     label: {
@@ -197,34 +198,34 @@ const echartsInit = () => {
     },
   }
 
-  var pieChartDom = document.getElementById("pie")
+  var pieChartDom = document.getElementById('pie')
   var pieChart = echarts.init(pieChartDom as HTMLElement)
   var pieOption = {
     title: {
-      text: "销售数量比",
-      left: "center",
+      text: '销售数量比',
+      left: 'center',
     },
     tooltip: {
-      trigger: "item",
+      trigger: 'item',
     },
     legend: {
-      orient: "vertical",
-      left: "left",
+      orient: 'vertical',
+      left: 'left',
     },
     series: [
       {
-        name: "Access From",
-        type: "pie",
-        radius: "50%",
+        name: 'Access From',
+        type: 'pie',
+        radius: '50%',
         label: {
-          formatter: "{b}:{c}瓶,{d}%",
+          formatter: '{b}:{c}瓶,{d}%',
         },
         data: [{}],
         emphasis: {
           itemStyle: {
             shadowBlur: 10,
             shadowOffsetX: 0,
-            shadowColor: "rgba(0, 0, 0, 0.5)",
+            shadowColor: 'rgba(0, 0, 0, 0.5)',
           },
         },
       },
@@ -233,7 +234,7 @@ const echartsInit = () => {
   if (value.freezerId.length != 0)
     request
       .post<{ data: RServerData }, RServerData>(
-        "/echarts/months",
+        '/echarts/months',
         value.freezerId
       )
       .then((res) => {
@@ -244,7 +245,7 @@ const echartsInit = () => {
         pieOption && pieChart.setOption(pieOption)
       })
   request
-    .post<{ data: RServerData }, RServerData>("/echarts/sold", value.freezerId)
+    .post<{ data: RServerData }, RServerData>('/echarts/sold', value.freezerId)
     .then((res) => {
       pieOption.series[0].data = res.data[0].map(
         (item: number | string, index: number) => ({

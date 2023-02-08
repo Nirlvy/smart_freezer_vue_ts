@@ -1,7 +1,7 @@
-import axios from "axios"
-import { ElMessage } from "element-plus"
-import { useStore } from "../store/store"
-import { router } from "../router/index"
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import { useStore } from '../store/store'
+import { router } from '../router/index'
 
 const store = useStore()
 const url = store.ServerIp
@@ -16,9 +16,9 @@ const request = axios.create({
 // 比如统一加token，对请求参数统一加密
 request.interceptors.request.use(
   (config) => {
-    ;(config as any).headers["Content-Type"] = "application/json;charset=utf-8"
-    let user = store.user
-    if (user) (config as any).headers["token"] = user.token // 设置请求头
+    ;(config as any).headers['Content-Type'] = 'application/json;charset=utf-8'
+    const user = store.user
+    if (user) (config as any).headers['token'] = user.token // 设置请求头
     return config
   },
   (error) => {
@@ -32,21 +32,21 @@ request.interceptors.response.use(
   (response) => {
     let res = response.data
     // 如果是返回的文件
-    if (response.config.responseType === "blob") {
+    if (response.config.responseType === 'blob') {
       return res
     }
     // 兼容服务端返回的字符串数据
-    if (typeof res === "string") {
+    if (typeof res === 'string') {
       res = res ? JSON.parse(res) : res
     }
-    if (res.code === "401") {
+    if (res.code === '401') {
       ElMessage.error(res.msg)
-      router.push("/")
+      router.push('/')
     }
     return res
   },
   (error) => {
-    console.log("err" + error) // for debug
+    console.log('err' + error) // for debug
     return Promise.reject(error)
   }
 )

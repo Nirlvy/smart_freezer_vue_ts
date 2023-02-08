@@ -1,25 +1,25 @@
 <template>
   <div style="padding: 10px 0">
     <el-input
+      v-model="input.id"
       class="ml-10"
       style="width: 220px"
       placeholder="ID"
       clearable
-      @clear="load()"
-      v-model="input_id"
       :prefix-icon="InfoFilled"
+      @clear="load()"
     /><el-input
+      v-model="input.userName"
       class="ml-10"
       style="width: 220px"
       placeholder="用户名"
       clearable
-      @clear="load()"
-      v-model="input_userName"
       :prefix-icon="User"
+      @clear="load()"
     />
     <el-date-picker
+      v-model="input.date"
       class="ml-10"
-      v-model="input_date"
       type="date"
       placeholder="日期"
       format="YYYY-MM-DD"
@@ -27,26 +27,27 @@
       @clear="load()"
     />
     <el-input
+      v-model="input.shelves"
       class="ml-10"
       style="width: 220px"
       placeholder="数量前后100的上架"
       clearable
-      @clear="load()"
-      v-model="input_shelves"
       :prefix-icon="ShoppingCartFull"
+      @clear="load()"
     />
     <el-input
+      v-model="input.sold"
       class="ml-10"
       style="width: 220px"
       placeholder="数量前后100的售出"
       clearable
-      @clear="load()"
-      v-model="input_sold"
       :prefix-icon="ShoppingCart"
+      @clear="load()"
     />
-    <el-button type="primary" class="ml-10" :icon="Search" @click="load()"
-      >搜索</el-button
-    >
+    <el-button class="ml-10" :icon="Search" @click="clear()"> 清除 </el-button>
+    <el-button type="primary" class="ml-10" :icon="Search" @click="load()">
+      搜索
+    </el-button>
   </div>
 
   <div style="padding: 10px 10px">
@@ -56,16 +57,16 @@
     <el-popconfirm
       title="确定批量删除?"
       width="200"
-      @confirm="batchDelete"
       cancel-button-text="我再想想"
+      @confirm="batchDelete"
     >
       <template #reference>
         <el-button type="danger" :icon="DocumentDelete">批量删除</el-button>
       </template>
     </el-popconfirm>
     <el-upload
-      class="ml-10"
       v-model:action="server_url"
+      class="ml-10"
       :on-success="handleUpSuccess"
       :on-error="handleUpError"
       :limit="1"
@@ -83,9 +84,9 @@
 
   <el-dialog v-model="new_dialog" title="新增用户">
     <el-form
+      ref="ruleFormRef"
       :model="register_form"
       :rules="register_rules"
-      ref="ruleFormRef"
       status-icon
       hide-required-asterisk
     >
@@ -153,8 +154,8 @@
         <el-popconfirm
           title="确定删除?"
           width="200"
-          @confirm="handleDelete(scope.row)"
           cancel-button-text="我再想想"
+          @confirm="handleDelete(scope.row)"
         >
           <template #reference>
             <el-button size="small" type="danger" :icon="DocumentDelete"
@@ -168,8 +169,8 @@
 
   <el-dialog v-model="edit_dialog" title="用户信息修改" width="25%">
     <el-form
-      :model="edit_form"
       ref="ruleFormRef"
+      :model="edit_form"
       label-width="80"
       :rules="edit_rules"
     >
@@ -227,8 +228,8 @@
   <div class="ml-10" style="padding: 10px 0">
     <el-pagination
       v-model:current-page="currentPage"
-      :page-sizes="[5, 10, 15]"
       v-model:page-size="pageSize"
+      :page-sizes="[5, 10, 15]"
       :background="true"
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
@@ -239,7 +240,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, ref } from "vue"
+import { reactive, ref } from 'vue'
 import {
   Search,
   Edit,
@@ -253,11 +254,11 @@ import {
   ShoppingCart,
   UserFilled,
   Lock,
-} from "@element-plus/icons-vue"
-import { ElMessage, FormInstance, FormRules, genFileId } from "element-plus"
-import type { UploadInstance, UploadProps, UploadRawFile } from "element-plus"
-import request from "../utils/request"
-import { useStore } from "../store/store"
+} from '@element-plus/icons-vue'
+import { ElMessage, FormInstance, FormRules, genFileId } from 'element-plus'
+import type { UploadInstance, UploadProps, UploadRawFile } from 'element-plus'
+import request from '../utils/request'
+import { useStore } from '../store/store'
 
 interface Userinfor {
   id: number
@@ -266,19 +267,13 @@ interface Userinfor {
   shelves: number
   sold: number
 }
-
 interface ServerData {
   records: string
   total: number
 }
-//TODO:简化
+
 const store = useStore()
 const tableData = ref()
-const input_id = ref("")
-const input_userName = ref("")
-const input_date = ref([])
-const input_shelves = ref("")
-const input_sold = ref("")
 const total = ref(0)
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -287,41 +282,44 @@ const edit_dialog = ref(false)
 const multipleSelection = ref<Userinfor[]>([])
 const upload = ref<UploadInstance>()
 const server = store.ServerIp
-const server_url = ref(server + "/user/import")
-
+const server_url = ref(server + '/user/import')
+const input = reactive({
+  id: '',
+  userName: '',
+  date: [],
+  shelves: '',
+  sold: '',
+})
 const register_form = reactive({
-  userName: "",
-  password: "",
-  confirmPassword: "",
+  userName: '',
+  password: '',
+  confirmPassword: '',
 })
-
 const edit_form = reactive({
-  id: "",
-  userName: "",
-  role: "user",
-  createTime: "",
-  shelves: "",
-  sold: "",
+  id: '',
+  userName: '',
+  role: 'user',
+  createTime: '',
+  shelves: '',
+  sold: '',
 })
-
 const ruleFormRef = ref<FormInstance>()
-
 const validatePass = (_rule: any, value: any, callback: any) => {
-  if (value === "") {
-    callback(new Error("请输入密码！"))
+  if (value === '') {
+    callback(new Error('请输入密码！'))
   } else {
-    if (register_form.confirmPassword !== "") {
+    if (register_form.confirmPassword !== '') {
       if (!ruleFormRef.value) return
-      ruleFormRef.value.validateField("checkPass", () => null)
+      ruleFormRef.value.validateField('checkPass', () => null)
     }
     callback()
   }
 }
 const validatePass2 = (_rule: any, value: any, callback: any) => {
-  if (value === "") {
-    callback(new Error("请再次输入密码！"))
+  if (value === '') {
+    callback(new Error('请再次输入密码！'))
   } else if (value !== register_form.password) {
-    callback(new Error("两次输入不一致！"))
+    callback(new Error('两次输入不一致！'))
   } else {
     callback()
   }
@@ -329,93 +327,98 @@ const validatePass2 = (_rule: any, value: any, callback: any) => {
 
 const register_rules = reactive<FormRules>({
   userName: [
-    { required: true, message: "请输入用户名", trigger: "blur" },
-    { min: 1, max: 20, message: "长度应该为1到20位", trigger: "blur" },
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 1, max: 20, message: '长度应该为1到20位', trigger: 'blur' },
   ],
   password: [
-    { min: 6, max: 30, message: "长度应该为6到30位", trigger: "blur" },
-    { validator: validatePass, trigger: "blur" },
+    { min: 6, max: 30, message: '长度应该为6到30位', trigger: 'blur' },
+    { validator: validatePass, trigger: 'blur' },
   ],
   confirmPassword: [
-    { min: 6, max: 30, message: "长度应该为6到30位", trigger: "blur" },
-    { validator: validatePass2, trigger: "blur" },
+    { min: 6, max: 30, message: '长度应该为6到30位', trigger: 'blur' },
+    { validator: validatePass2, trigger: 'blur' },
   ],
 })
 
 const edit_rules = reactive<FormRules>({
   userName: [
-    { required: true, message: "请输入用户名", trigger: "blur" },
-    { min: 1, max: 20, message: "长度应该为1到20位", trigger: "blur" },
+    { required: true, message: '请输入用户名', trigger: 'blur' },
+    { min: 1, max: 20, message: '长度应该为1到20位', trigger: 'blur' },
   ],
   role: [{ required: true }],
-  createTime: [{ required: true, message: "请输入注册时间", trigger: "blur" }],
+  createTime: [{ required: true, message: '请输入注册时间', trigger: 'blur' }],
   shelves: [
-    { required: true, message: "请输入上架数量", trigger: "blur" },
-    { type: "number", message: "请输入数字", trigger: "blur" },
+    { required: true, message: '请输入上架数量', trigger: 'blur' },
+    { type: 'number', message: '请输入数字', trigger: 'blur' },
   ],
   sold: [
-    { required: true, message: "请输入售出数量", trigger: "blur" },
-    { type: "number", message: "请输入数字", trigger: "blur" },
+    { required: true, message: '请输入售出数量', trigger: 'blur' },
+    { type: 'number', message: '请输入数字', trigger: 'blur' },
   ],
 })
 
 const clear = () => {
   Object.assign(register_form, {
-    userName: "",
-    password: "",
-    confirmPassword: "",
+    userName: '',
+    password: '',
+    confirmPassword: '',
   })
 
   Object.assign(edit_form, {
-    id: "",
-    userName: "",
-    createTime: "",
-    shelves: "",
-    sold: "",
+    id: '',
+    userName: '',
+    createTime: '',
+    shelves: '',
+    sold: '',
   })
+  Object.assign(input, {
+    id: '',
+    userName: '',
+    date: [],
+    shelves: '',
+    sold: '',
+  })
+  load()
 }
 
 const load = () => {
   request
     .get<{ data: ServerData }, ServerData>(
-      "/user/page?pageNum=" +
+      '/user/page?pageNum=' +
         currentPage.value +
-        "&pageSize=" +
+        '&pageSize=' +
         pageSize.value +
-        "&id=" +
-        input_id.value +
-        "&userName=" +
-        input_userName.value +
-        "&createTime=" +
-        input_date.value +
-        "&shelves=" +
-        input_shelves.value +
-        "&sold=" +
-        input_sold.value
+        '&id=' +
+        input.id +
+        '&userName=' +
+        input.userName +
+        '&createTime=' +
+        input.date +
+        '&shelves=' +
+        input.shelves +
+        '&sold=' +
+        input.sold
     )
     .then((res) => {
       tableData.value = res.records
       total.value = res.total
     })
 }
-
 load()
-
 const new_crofirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
       request
         .post<{ data: RServerData }, RServerData>(
-          "/user/register",
+          '/user/register',
           register_form
         )
         .then((res) => {
-          if (res.code === "200") {
-            ElMessage.success("注册成功")
+          if (res.code === '200') {
+            ElMessage.success('注册成功')
             new_dialog.value = false
             currentPage.value = Math.ceil((total.value + 1) / pageSize.value)
-            load()
             clear()
           } else {
             ElMessage.error(res.msg)
@@ -424,69 +427,62 @@ const new_crofirm = async (formEl: FormInstance | undefined) => {
     }
   })
 }
-
 const handleEdit = (row: string) => {
   Object.assign(edit_form, row)
   edit_dialog.value = true
 }
-
 const edit_corfirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
       {
-        request.post("/user?userName=", edit_form).then((res) => {
+        request.post('/user?userName=', edit_form).then((res) => {
           if (res) {
             {
-              ElMessage.success("修改成功！")
+              ElMessage.success('修改成功！')
               edit_dialog.value = false
-              input_id.value = edit_form.id
-              load()
+              input.id = edit_form.id
               clear()
             }
           }
         })
       }
     } else {
-      ElMessage.error("输入不符合要求，请检查！")
+      ElMessage.error('输入不符合要求，请检查！')
     }
   })
 }
-
 const handleDelete = (row: string) => {
   Object.assign(edit_form, row)
-  request.delete("/user/" + edit_form.id).then((res) => {
+  request.delete('/user/' + edit_form.id).then((res) => {
     if (res) {
-      ElMessage.success("删除成功！")
+      ElMessage.success('删除成功！')
       load()
     }
   })
 }
-
 const selection = (val: Userinfor[]) => {
   multipleSelection.value = val
 }
-
 const batchDelete = () => {
   let ids = multipleSelection.value.map((v) => v.id)
-  request.delete("/user/del/batch", { data: ids }).then((res) => {
+  request.delete('/user/del/batch', { data: ids }).then((res) => {
     if (res) {
-      ElMessage.success("删除成功！")
+      ElMessage.success('删除成功！')
       load()
     }
   })
 }
-
 const exp = async () => {
   try {
-    const res = await request.get(server + "/user/export", {
-      responseType: "blob",
+    const res = await request.get(server + '/user/export', {
+      responseType: 'blob',
     })
     const blob = new Blob([res.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     })
-    const fileName = "用户信息.xlsx"
-    const link = document.createElement("a")
+    const fileName = '用户信息.xlsx'
+    const link = document.createElement('a')
     link.href = window.URL.createObjectURL(blob)
     link.download = fileName
     link.click()
@@ -495,21 +491,18 @@ const exp = async () => {
     console.error(err)
   }
 }
-
 const handleUpSuccess = () => {
-  ElMessage.success("上传成功")
+  ElMessage.success('上传成功')
   load()
 }
-
 const handleUpError = () => {
-  ElMessage.error("上传失败，请稍后再试")
+  ElMessage.error('上传失败，请稍后再试')
 }
-
-const handleExceed: UploadProps["onExceed"] = (files) => {
-  upload.value!.clearFiles()
+const handleExceed: UploadProps['onExceed'] = (files) => {
+  upload.value?.clearFiles()
   const file = files[0] as UploadRawFile
   file.uid = genFileId()
-  upload.value!.handleStart(file)
+  upload.value?.handleStart(file)
 }
 </script>
 

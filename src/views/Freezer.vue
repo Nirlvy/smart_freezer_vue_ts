@@ -34,7 +34,9 @@
       <div class="ru">
         <el-descriptions class="des" title="冰柜信息" :column="4" border>
           <template #extra>
-            <el-button type="primary" @click="click">编辑</el-button>
+            <el-button type="primary" @click="handleDrawer"
+              >位置修改
+            </el-button>
           </template>
           <el-descriptions-item min-width="90px" label-align="center">
             <template #label>
@@ -127,13 +129,18 @@
         </el-descriptions>
         <div id="main" class="echarts" />
       </div>
-      <div class="rd" id="container" />
+      <div id="container" class="rd" />
     </div>
-    <el-drawer v-model="drawer">
+    <el-drawer v-model="drawer" size="50%">
       <template #header>
-        <h4>set title by slot</h4>
+        <h4>冰柜信息编辑</h4>
       </template>
-      <template #default> </template>
+      <template #default>
+        <div class="drawer">
+          <input id="tipinput" v-model="input" class="input" placeholder="" />
+          <div id="drawerContainer" />
+        </div>
+      </template>
       <template #footer>
         <div style="flex: auto">
           <el-button @click="cancelClick">cancel</el-button>
@@ -145,7 +152,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from "vue"
+import { onMounted, reactive, ref } from 'vue'
 import {
   Box,
   Clock,
@@ -154,86 +161,145 @@ import {
   Odometer,
   ShoppingTrolley,
   User,
-} from "@element-plus/icons-vue"
-import request from "../utils/request"
-import * as echarts from "echarts"
-import { useStore } from "../store/store"
+} from '@element-plus/icons-vue'
+import request from '../utils/request'
+import * as echarts from 'echarts'
+import { useStore } from '../store/store'
+import { shallowRef } from 'vue'
+import AMapLoader from '@amap/amap-jsapi-loader'
+import {
+  ElTable,
+  ElTableColumn,
+  ElSwitch,
+  ElDescriptions,
+  ElButton,
+  ElDescriptionsItem,
+  ElIcon,
+  ElDrawer,
+} from 'element-plus'
 
 const store = useStore()
 const tableData = ref()
 const user = store.user
 const server = store.ServerIp
 const drawer = ref(false)
+const input = shallowRef()
 const freezerinfo = reactive({
-  id: "",
-  location: "",
-  capacity: "",
-  shelves: "",
-  enable: "",
-  need: "",
-  lastSupply: "",
-  releaseTime: "",
+  id: '',
+  location: '',
+  capacity: '',
+  shelves: '',
+  enable: '',
+  need: '',
+  lastSupply: '',
+  releaseTime: '',
 })
-onMounted(() => {
-  var script = document.createElement("script")
-  script.type = "text/javascript"
-  script.src =
-    "https://map.qq.com/api/gljs?v=1.exp&key=7VCBZ-5FWK3-KFF3A-YNJHS-UMFS6-5VFJI"
-  document.body.appendChild(script)
-  script.onload = () => {
-    initMap()
-  }
-})
-const initMap = () => {
-  var center = new TMap.LatLng(39.98210863924864, 116.31310899739151)
-  var centerHeight = new TMap.LatLng(39.98210863924864, 116.31310899739151, 134)
-
-  // 初始化地图
-  var map = new TMap.Map("container", {
-    zoom: 17, // 设置地图缩放
-    center: new TMap.LatLng(39.98210863924864, 116.31310899739151), // 设置地图中心点坐标，
-    pitch: 0, // 俯仰度
-    rotation: 0, // 旋转角度
-  })
-
-  // MultiMarker文档地址：https://lbs.qq.com/webApi/javascriptGL/glDoc/glDocMarker
-  var marker = new TMap.MultiMarker({
-    map: map,
-    styles: {
-      // 点标记样式
-      marker: new TMap.MarkerStyle({
-        width: 20, // 样式宽
-        height: 30, // 样式高
-        anchor: { x: 10, y: 30 }, // 描点位置
-      }),
-    },
-    geometries: [
-      // 点标记数据数组
-      {
-        // 标记位置(纬度，经度，高度)
-        position: center,
-        id: "marker",
-      },
-    ],
+const markerList = reactive({})
+const load = () => {
+  request.get(server + '/freezer/list?id=' + user.id).then((res) => {
+    tableData.value = res
   })
 }
+load()
+onMounted(() => {
+  window._AMapSecurityConfig = {
+    securityJsCode: 'f0acd0d469d95ee4c57156a7ceedd9fe',
+  }
+  initMap()
+})
+const handleDrawer = () => {
+  drawer.value = true
+  initDrawer()
+}
+const initMap = () => {
+  AMapLoader.load({
+    key: '6f0e7fef63c86008906382ceeb13036e', //首次load key为必填
+    version: '2.0',
+  })
+    .then((AMap) => {
+      let map = new AMap.Map('container', {
+        //设置地图容器id
+        viewMode: '3D', //是否为3D地图模式
+        zoom: 5, //初始化地图级别
+        center: [118.50685, 31.668765], //初始化地图中心点位置
+      })
+      map.plugin(['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar'], () => {
+        var element = document.querySelector('.rd') as HTMLElement
+        if (element) {
+          var height = element.offsetHeight
+          map.addControl(
+            new AMap.Scale({
+              offset: [10, 20 - height],
+              position: 'LB',
+            })
+          )
+          map.addControl(
+            new AMap.ControlBar({
+              position: 'RT',
+            })
+          )
+          map.addControl(
+            new AMap.ToolBar({
+              offset: [30, 100],
+              position: 'RT',
+            })
+          )
+        }
+      })
+    })
+    .catch((e) => {
+      console.error(e)
+    })
+}
+const initDrawer = () => {
+  AMapLoader.load({
+    key: '6f0e7fef63c86008906382ceeb13036e', // 申请好的Web端开发者Key，首次调用 load 时必填
+    version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
+    plugins: ['AMap.Scale'], // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+  })
+    .then((AMap) => {
+      //地图加载
+      var map = new AMap.Map('drawerContainer', {
+        resizeEnable: true,
+      })
+      //输入提示
+      var autoOptions = {
+        input: 'tipinput',
+      }
+      AMap.plugin(['AMap.PlaceSearch', 'AMap.AutoComplete'], function () {
+        var auto = new AMap.AutoComplete(autoOptions)
+        var placeSearch = new AMap.PlaceSearch({
+          map: map,
+        }) //构造地点查询类
+        auto.on('select', select) //注册监听，当选中某条记录时会触发
+        function select(e: { poi: { adcode: any; name: any } }) {
+          console.log(e)
+          placeSearch.setCity(e.poi.adcode)
+          placeSearch.search(e.poi.name) //关键字查询查询
+        }
+      })
+    })
+    .catch((e) => {
+      console.log(e)
+    })
+}
 const initEcharts = (row: any) => {
-  var chartDom = document.getElementById("main")
+  var chartDom = document.getElementById('main')
   var myChart = echarts.init(chartDom as HTMLElement)
   var option = {
     // title: {
     //   text: "销售情况",
     // },
     tooltip: {
-      trigger: "axis",
+      trigger: 'axis',
     },
     legend: {
       data: [] as string[],
     },
     grid: {
-      left: "3%",
-      right: "4%",
-      bottom: "3%",
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
       containLabel: true,
     },
     toolbox: {
@@ -242,34 +308,33 @@ const initEcharts = (row: any) => {
       },
     },
     xAxis: {
-      type: "category",
+      type: 'category',
       boundaryGap: false,
       data: [
-        "一月",
-        "二月",
-        "三月",
-        "四月",
-        "五月",
-        "六月",
-        "七月",
-        "八月",
-        "九月",
-        "十月",
-        "十一月",
-        "十二月",
+        '一月',
+        '二月',
+        '三月',
+        '四月',
+        '五月',
+        '六月',
+        '七月',
+        '八月',
+        '九月',
+        '十月',
+        '十一月',
+        '十二月',
       ],
     },
     yAxis: {
-      type: "value",
+      type: 'value',
     },
     series: [] as any,
   }
   request
     .get<{ data: RServerData }, RServerData>(
-      server + "/shelvesLog/freezer?id=" + row.id
+      server + '/shelvesLog/freezer?id=' + row.id
     )
     .then((res) => {
-      console.log(res)
       option.legend.data = [
         ...res.data[0],
         ...res.data[0].map((item: string) => `${item}售出`),
@@ -277,47 +342,43 @@ const initEcharts = (row: any) => {
       for (var i = 0; i < res.data[1].length; i++) {
         option.series.push({
           name: res.data[0][i],
-          type: "line",
+          type: 'line',
           data: res.data[1][i],
         })
         option.series.push({
           name: res.data[0].map((item: string) => `${item}售出`)[i],
-          type: "line",
+          type: 'line',
           data: res.data[2][i],
         })
       }
-      console.log(option)
       option && myChart.setOption(option, true)
     })
 }
-const load = () => {
-  request.get(server + "/freezer/list?id=" + user.id).then((res) => {
-    tableData.value = res
-  })
-}
-load()
+
 const handleChange = (row: any) => {}
 const handleRowClick = (row: any) => {
   Object.assign(freezerinfo, row)
   for (const key in freezerinfo) {
     if (freezerinfo[key] === true) {
-      freezerinfo[key] = "是"
+      freezerinfo[key] = '是'
     } else if (freezerinfo[key] === false) {
-      freezerinfo[key] = "否"
+      freezerinfo[key] = '否'
     }
   }
   initEcharts(row)
 }
-const click = () => {
-  drawer.value = true
-  console.log(drawer.value)
-}
+const cancelClick = () => {}
+const confirmClick = () => {}
 </script>
 
 <style scoped>
 #container {
   width: 100%;
   height: 50%;
+}
+#drawerContainer {
+  width: 100%;
+  height: 100%;
 }
 .bg {
   height: 100%;
@@ -364,5 +425,16 @@ const click = () => {
   width: 100%;
   flex: 1;
   max-height: 60%;
+}
+.drawer {
+  width: 100%;
+  height: 100%;
+}
+.input {
+  position: absolute;
+  z-index: 1;
+}
+.amap-controls {
+  height: 100% !important;
 }
 </style>

@@ -13,7 +13,7 @@
     "lib": ["ESNext", "DOM"],
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["pinia-plugin-persist"],
+    "types": ["pinia-plugin-persist", "node"],
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]

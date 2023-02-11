@@ -1,4 +1,6 @@
+import { useSessionStorage } from '@vueuse/core'
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
 interface User {
   id: number
@@ -7,6 +9,8 @@ interface User {
   token: string
   userName: string
 }
+
+const user = ref()
 
 export const useStore = defineStore('main', {
   state: () => ({
@@ -20,12 +24,10 @@ export const useStore = defineStore('main', {
   },
   actions: {
     getUser() {
-      return sessionStorage.getItem('user')
-        ? JSON.parse(sessionStorage.getItem('user') || '0')
-        : {}
+      return user.value
     },
     setUser(data: any) {
-      sessionStorage.setItem('user', JSON.stringify(data))
+      user.value = useSessionStorage('user', data)
     },
   },
 })

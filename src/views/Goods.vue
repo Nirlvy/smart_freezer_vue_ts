@@ -12,10 +12,10 @@
       @clear="load()"
     >
       <el-option
-        v-for="item in options"
-        :key="item.value"
-        :label="item.label"
-        :value="item.value"
+        v-for="item in searchData.freezerId"
+        :key="item"
+        :label="item"
+        :value="item"
       />
     </el-select>
     <el-select
@@ -29,10 +29,10 @@
       @clear="load()"
     >
       <el-option
-        v-for="item in goods"
-        :key="item.value"
-        :label="item.label"
-        :value="item.value"
+        v-for="item in searchData.goods"
+        :key="item"
+        :label="item"
+        :value="item"
       />
     </el-select>
     <el-select
@@ -97,20 +97,20 @@
       <el-form-item label="冰柜" :label-width="70" prop="id">
         <el-select v-model="up_form.id" placeholder="冰柜ID" clearable>
           <el-option
-            v-for="item in options"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+            v-for="item in upData.freezerId"
+            :key="item"
+            :label="item"
+            :value="item"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="商品名" :label-width="70" prop="name">
         <el-select v-model="up_form.name" placeholder="商品名" clearable>
           <el-option
-            v-for="item in goods"
-            :key="item.value"
+            v-for="item in upData.goods"
+            :key="item.label"
             :label="item.label"
-            :value="item.value"
+            :value="item.label"
             :disabled="item.disabled"
           />
         </el-select>
@@ -180,12 +180,12 @@
   </el-table>
   <div class="ml-10" style="padding: 10px 0">
     <el-pagination
-      v-model:current-page="data.currentPage"
-      v-model:page-size="data.pageSize"
+      v-model:current-page="pageData.currentPage"
+      v-model:page-size="pageData.pageSize"
       :page-sizes="[5, 10, 15]"
       :background="true"
       layout="total, sizes, prev, pager, next, jumper"
-      :total="data.total"
+      :total="pageData.total"
       @size-change="load"
       @current-change="load"
     />
@@ -240,11 +240,23 @@ const store = useStore()
 const ruleFormRef = ref<FormInstance>()
 const tableData = ref()
 const up_dialog = ref(false)
-const data = reactive({
+const pageData = reactive({
   currentPage: 1,
   pageSize: 10,
   total: 0,
+})
+const upData = reactive({
   freezerId: [] as number[],
+  goods: [
+    {
+      label: '',
+      disabled: false,
+    },
+  ],
+})
+const searchData = reactive({
+  freezerId: [] as number[],
+  goods: [] as string[],
 })
 const input = reactive({
   id: [] as number[],
@@ -268,8 +280,6 @@ const up_form = reactive({
 })
 const multipleSelection = ref<goodsinfo[]>([])
 const user = store.user
-const server = store.ServerIp
-const options = ref()
 const goods = ref()
 const states = ref([
   {
@@ -304,9 +314,9 @@ const load = () => {
   request
     .post<{ data: PServerData }, PServerData>(
       '/shelvesLog/page?pageNum=' +
-        data.currentPage +
+        pageData.currentPage +
         '&pageSize=' +
-        data.pageSize +
+        pageData.pageSize +
         '&id=' +
         user.id +
         '&state=' +
@@ -321,24 +331,28 @@ const load = () => {
       }
     )
     .then((res) => {
+      // TODO:获取四种数据,后端需要重写
       tableData.value = res.records
-      data.total = res.total
+      pageData.total = res.total
       data.freezerId = [
         ...new Set(
           res.records.map((record: { freezerId: number }) => record.freezerId)
         ),
       ] as number[]
-      options.value = Array.from(data.freezerId).map((item) => ({
-        value: item,
-        label: item,
-      }))
+    })
+  request
+    .get<{ data: RServerData }, RServerData>(
+      '/shelvesLog/freezer?id=' + user.id
+    )
+    .then((res) => {
+      searchData.freezerId = res.data
+      searchData.goods = res.data[0]
     })
   if (!goods.value)
     request
       .get<{ data: GServerData[] }, GServerData[]>('/goods')
       .then((res) => {
-        goods.value = Array.from(res).map((item) => ({
-          value: item.name,
+        data.upGoods = Array.from(res).map((item) => ({
           label: item.name,
           disabled: item.disable,
         }))
@@ -422,7 +436,7 @@ const up_crofirm = async (formEl: FormInstance | undefined) => {
 }
 const exp = async () => {
   request
-    .get(server + '/shelvesLog/export?id=' + user.id, {
+    .get('/shelvesLog/export?id=' + user.id, {
       responseType: 'blob',
     })
     .then((response) => {

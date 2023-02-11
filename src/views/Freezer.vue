@@ -1,23 +1,23 @@
 <template>
   <div class="bg">
-    <div class="left">
+    <div class="left" :class="{ click: lineClick }">
       <el-table :data="tableData" @row-click="handleRowClick">
-        <el-table-column prop="id" label="ID" width="50px" />
+        <el-table-column prop="id" label="ID" width="30px" />
         <el-table-column prop="location" label="位置" />
-        <el-table-column prop="capacity" label="容量" width="60px" />
-        <el-table-column prop="shelves" label="在架" width="60px" />
-        <el-table-column prop="enable" label="启用" width="60px">
+        <el-table-column prop="capacity" label="容量" width="40px" />
+        <el-table-column prop="shelves" label="在架" width="40px" />
+        <el-table-column prop="enable" label="启用" width="50px">
           <template #default="scope">
             <el-switch
               v-model="scope.row.enable"
               inline-prompt
-              active-text="启用"
-              inactive-text="禁用"
+              active-text="是"
+              inactive-text="否"
               @change="handleChange(scope.row)"
             />
           </template>
         </el-table-column>
-        <el-table-column label="需要补充" width="80px">
+        <el-table-column label="补充" width="45px">
           <template #default="scope">
             <el-switch
               v-model="scope.row.need"
@@ -30,11 +30,14 @@
         </el-table-column>
       </el-table>
     </div>
-    <div class="right">
+    <div class="right" :class="{ click: lineClick }">
       <div class="ru">
         <el-descriptions class="des" title="冰柜信息" :column="4" border>
           <template #extra>
-            <el-button type="primary" @click="handleDrawer"
+            <el-button
+              v-if="freezerinfo.id != ''"
+              type="primary"
+              @click="handleDrawer"
               >位置修改
             </el-button>
           </template>
@@ -133,18 +136,30 @@
     </div>
     <el-drawer v-model="drawer" size="50%">
       <template #header>
-        <h4>冰柜信息编辑</h4>
+        <h4>冰柜信息编辑(右键点击地图设置)</h4>
       </template>
       <template #default>
         <div class="drawer">
-          <input id="tipinput" v-model="input" class="input" placeholder="" />
-          <div id="drawerContainer" />
+          <div class="inputDiv">
+            <el-input
+              id="tipinput"
+              v-model="input"
+              class="input"
+              :prefix-icon="Search"
+              placeholder="请输入搜索的地址"
+              clearable
+              @input="changeZIndex"
+            />
+          </div>
+          <div class="drawerMap">
+            <div id="drawerContainer" />
+          </div>
         </div>
       </template>
       <template #footer>
         <div style="flex: auto">
-          <el-button @click="cancelClick">cancel</el-button>
-          <el-button type="primary" @click="confirmClick"> confirm </el-button>
+          <el-button @click="cancelClick">取消</el-button>
+          <el-button type="primary" @click="confirmClick">保存</el-button>
         </div>
       </template>
     </el-drawer>
@@ -159,6 +174,7 @@ import {
   Connection,
   Location,
   Odometer,
+  Search,
   ShoppingTrolley,
   User,
 } from '@element-plus/icons-vue'
@@ -176,10 +192,12 @@ import {
   ElDescriptionsItem,
   ElIcon,
   ElDrawer,
+  ElMessage,
 } from 'element-plus'
 
 const store = useStore()
 const tableData = ref()
+const lineClick = ref(false)
 const user = store.user
 const server = store.ServerIp
 const drawer = ref(false)
@@ -194,14 +212,29 @@ const freezerinfo = reactive({
   lastSupply: '',
   releaseTime: '',
 })
-const markerList = reactive({})
+const formattedAddress = ref()
+const position = ref<[number, number]>()
+const markerGroup = reactive({
+  id: [] as number[],
+  position: [] as string[],
+  location: [] as string[],
+})
+
 const load = () => {
   request.get(server + '/freezer/list?id=' + user.id).then((res) => {
     tableData.value = res
+    tableData.value.forEach(
+      (marker: { id: number; position: string; location: string }) => {
+        markerGroup.id.push(marker.id)
+        markerGroup.position.push(marker.position)
+        markerGroup.location.push(marker.location)
+      }
+    )
   })
 }
 load()
 onMounted(() => {
+  // TODO:编译前删除
   window._AMapSecurityConfig = {
     securityJsCode: 'f0acd0d469d95ee4c57156a7ceedd9fe',
   }
@@ -213,15 +246,14 @@ const handleDrawer = () => {
 }
 const initMap = () => {
   AMapLoader.load({
-    key: '6f0e7fef63c86008906382ceeb13036e', //首次load key为必填
+    key: '6f0e7fef63c86008906382ceeb13036e',
     version: '2.0',
   })
     .then((AMap) => {
       let map = new AMap.Map('container', {
-        //设置地图容器id
-        viewMode: '3D', //是否为3D地图模式
-        zoom: 5, //初始化地图级别
-        center: [118.50685, 31.668765], //初始化地图中心点位置
+        viewMode: '3D',
+        zoom: 5,
+        center: [118.50685, 31.668765],
       })
       map.plugin(['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar'], () => {
         var element = document.querySelector('.rd') as HTMLElement
@@ -234,62 +266,147 @@ const initMap = () => {
             })
           )
           map.addControl(
-            new AMap.ControlBar({
-              position: 'RT',
-            })
-          )
-          map.addControl(
             new AMap.ToolBar({
-              offset: [30, 100],
-              position: 'RT',
+              offset: [10, 20 - height],
+              position: 'RB',
             })
           )
+          markerGroup.position.forEach((position, index) => {
+            const marker = new AMap.Marker({
+              map: map,
+              position: position.split(',').map(Number),
+              // icon: new AMap.Icon({
+              //   size: new AMap.Size(25, 34),
+              //   image: import('../assets/冰箱.png'),
+              //   imageSize: new AMap.Size(135, 40),
+              // }),
+            })
+            marker.setLabel({
+              direction: 'top',
+              content: '<div>' + markerGroup.location[index] + '</div>',
+            })
+          })
+          map.setFitView(null, false, [150, 60, 100, 60])
         }
       })
     })
     .catch((e) => {
-      console.error(e)
+      ElMessage.error(e)
     })
 }
 const initDrawer = () => {
   AMapLoader.load({
-    key: '6f0e7fef63c86008906382ceeb13036e', // 申请好的Web端开发者Key，首次调用 load 时必填
-    version: '2.0', // 指定要加载的 JSAPI 的版本，缺省时默认为 1.4.15
-    plugins: ['AMap.Scale'], // 需要使用的的插件列表，如比例尺'AMap.Scale'等
+    key: '6f0e7fef63c86008906382ceeb13036e',
+    version: '2.0',
   })
     .then((AMap) => {
-      //地图加载
       var map = new AMap.Map('drawerContainer', {
         resizeEnable: true,
       })
-      //输入提示
-      var autoOptions = {
-        input: 'tipinput',
-      }
-      AMap.plugin(['AMap.PlaceSearch', 'AMap.AutoComplete'], function () {
-        var auto = new AMap.AutoComplete(autoOptions)
-        var placeSearch = new AMap.PlaceSearch({
-          map: map,
-        }) //构造地点查询类
-        auto.on('select', select) //注册监听，当选中某条记录时会触发
-        function select(e: { poi: { adcode: any; name: any } }) {
-          console.log(e)
-          placeSearch.setCity(e.poi.adcode)
-          placeSearch.search(e.poi.name) //关键字查询查询
+      map.plugin(
+        [
+          'AMap.PlaceSearch',
+          'AMap.AutoComplete',
+          'AMap.MouseTool',
+          'AMap.Geocoder',
+        ],
+        () => {
+          var autoOptions = {
+            input: 'tipinput',
+          }
+          // 自动填充
+          var auto = new AMap.AutoComplete(autoOptions)
+          // 点击搜索
+          var placeSearch = new AMap.PlaceSearch({
+            map: map,
+          })
+          const select = (e: { poi: { adcode: number; name: string } }) => {
+            placeSearch.setCity(e.poi.adcode)
+            placeSearch.search(e.poi.name)
+          }
+          auto.on('select', select)
+          //创建右键菜单
+          var contextMenu = new AMap.ContextMenu()
+          contextMenu.addItem(
+            '放大一级',
+            () => {
+              map.zoomIn()
+            },
+            0
+          )
+          contextMenu.addItem(
+            '缩小一级',
+            () => {
+              map.zoomOut()
+            },
+            1
+          )
+          contextMenu.addItem(
+            '缩放至全国范围',
+            () => {
+              map.setZoomAndCenter(4, [108.946609, 34.262324])
+            },
+            2
+          )
+          contextMenu.addItem(
+            '添加标记',
+            async () => {
+              map.getAllOverlays('marker').forEach((item: any) => {
+                item.remove()
+              })
+              await geo()
+              var marker = new AMap.Marker({
+                map: map,
+                position: position.value,
+              })
+              marker.setLabel({
+                direction: 'top',
+                content: '<div>' + formattedAddress.value + '</div>',
+              })
+              contextMenu.close()
+            },
+            3
+          )
+          map.on('rightclick', function (e: { lnglat: [number, number] }) {
+            contextMenu.open(map, e.lnglat)
+            position.value = e.lnglat
+          })
+          const geo = () => {
+            return new Promise<void>((resolve) => {
+              var geocoder = new AMap.Geocoder({
+                extensions: 'all',
+              })
+              geocoder.getAddress(
+                position.value,
+                (
+                  status: string,
+                  result: {
+                    info: string
+                    regeocode: {
+                      formattedAddress: any
+                      pois: { name: string }[]
+                    }
+                  }
+                ) => {
+                  if (status === 'complete' && result.info === 'OK') {
+                    formattedAddress.value = result.regeocode.formattedAddress
+                    resolve()
+                  }
+                }
+              )
+            })
+          }
         }
-      })
+      )
     })
     .catch((e) => {
-      console.log(e)
+      ElMessage.error(e)
     })
 }
 const initEcharts = (row: any) => {
   var chartDom = document.getElementById('main')
   var myChart = echarts.init(chartDom as HTMLElement)
   var option = {
-    // title: {
-    //   text: "销售情况",
-    // },
     tooltip: {
       trigger: 'axis',
     },
@@ -297,7 +414,7 @@ const initEcharts = (row: any) => {
       data: [] as string[],
     },
     grid: {
-      left: '3%',
+      left: '1%',
       right: '4%',
       bottom: '3%',
       containLabel: true,
@@ -354,8 +471,18 @@ const initEcharts = (row: any) => {
       option && myChart.setOption(option, true)
     })
 }
-
-const handleChange = (row: any) => {}
+const handleChange = (row: any) => {
+  request
+    .post<{ data: RServerData }, RServerData>(server + '/freezer/update', row)
+    .then((res) => {
+      if (res.code === '200') {
+        ElMessage.success('修改成功')
+      } else {
+        ElMessage.error(res.msg)
+        load()
+      }
+    })
+}
 const handleRowClick = (row: any) => {
   Object.assign(freezerinfo, row)
   for (const key in freezerinfo) {
@@ -365,10 +492,50 @@ const handleRowClick = (row: any) => {
       freezerinfo[key] = '否'
     }
   }
-  initEcharts(row)
+  lineClick.value = true
+  echarts.init(document.getElementById('main') as HTMLElement).dispose()
+  setTimeout(() => {
+    initEcharts(row)
+  }, 1000)
 }
-const cancelClick = () => {}
-const confirmClick = () => {}
+const cancelClick = () => {
+  drawer.value = false
+}
+const confirmClick = () => {
+  request
+    .post<{ data: RServerData }, RServerData>(server + '/freezer/upmarker', {
+      id: freezerinfo.id,
+      position: position.value?.toString(),
+      location: formattedAddress.value,
+    })
+    .then((res) => {
+      if (res.code === '200') {
+        ElMessage.success('位置修改成功')
+        load()
+        Object.assign(freezerinfo, {
+          id: '',
+          location: '',
+          capacity: '',
+          shelves: '',
+          enable: '',
+          need: '',
+          lastSupply: '',
+          releaseTime: '',
+        })
+        echarts.init(document.getElementById('main') as HTMLElement).dispose()
+        drawer.value = false
+        lineClick.value = false
+      } else {
+        ElMessage.error(res.msg)
+      }
+    })
+  // TODO:marker完善
+}
+const changeZIndex = () => {
+  document
+    .querySelectorAll('.amap-sug-result')
+    .forEach((item) => ((item as HTMLElement).style.zIndex = '9999'))
+}
 </script>
 
 <style scoped>
@@ -386,17 +553,28 @@ const confirmClick = () => {}
   padding: 10px;
 }
 .left {
+  padding: 0.3%;
   height: 100%;
-  width: 30%;
+  width: 50%;
   margin-right: 5px;
   border-radius: 5px;
   box-shadow: 2px 2px 5px #999;
+  will-change: width;
+  transition: width 1s ease-in-out;
+}
+.left.click {
+  width: 30%;
 }
 .right {
   height: 100%;
-  width: 70%;
+  width: 50%;
   display: flex;
   flex-direction: column;
+  will-change: width;
+  transition: width 1s ease-in-out;
+}
+.right.click {
+  width: 70%;
 }
 .ru,
 .rd {
@@ -428,13 +606,21 @@ const confirmClick = () => {}
 }
 .drawer {
   width: 100%;
+  height: calc(100% - 50px);
+}
+.drawerMap {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
   height: 100%;
+}
+.inputDiv {
+  top: -8%;
+  margin-bottom: 5%;
+  width: 50%;
 }
 .input {
   position: absolute;
   z-index: 1;
-}
-.amap-controls {
-  height: 100% !important;
 }
 </style>

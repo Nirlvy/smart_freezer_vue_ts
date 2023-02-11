@@ -197,7 +197,6 @@ const echartsInit = () => {
       show: true,
     },
   }
-
   var pieChartDom = document.getElementById('pie')
   var pieChart = echarts.init(pieChartDom as HTMLElement)
   var pieOption = {

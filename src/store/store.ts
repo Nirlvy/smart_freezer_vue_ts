@@ -5,9 +5,11 @@ import { ref } from 'vue'
 interface User {
   id: number
   img: string
-  menus: [number]
+  menus: number[]
   token: string
   userName: string
+  freezerId: number[]
+  goods: string[]
 }
 
 const user = ref()

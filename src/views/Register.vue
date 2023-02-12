@@ -144,7 +144,7 @@ const register = async (formEl: FormInstance | undefined) => {
           user
         )
         .then((res) => {
-          if (res.code === '200') {
+          if (res.code === 200) {
             ElMessage.success('注册成功')
             store.user = res.data
             setRotes()

@@ -63,22 +63,6 @@ import { useRouter } from 'vue-router'
 import { setRotes } from '../router'
 import { useStore } from '../store/store'
 
-interface objectdata {
-  id: number
-  userName: string
-  password?: string
-  token: string
-  img: string
-  menus: [number]
-  role: string
-}
-
-interface ServerData {
-  code: string
-  data: objectdata
-  msg: string
-}
-
 const user = reactive({
   userName: '',
   password: '',
@@ -96,15 +80,14 @@ const rules = reactive<FormRules>({
   ],
 })
 const ruleFormRef = ref<FormInstance>()
-
 const login = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
       request
-        .post<{ data: ServerData }, ServerData>('/user/login', user)
+        .post<{ data: RServerData }, RServerData>('/user/login', user)
         .then((res) => {
-          if (res.code === '200') {
+          if (res.code === 200) {
             const userinfo = { ...res.data }
             delete userinfo.password
             store.user = userinfo

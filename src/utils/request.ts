@@ -29,7 +29,7 @@ request.interceptors.request.use(
 // response 拦截器
 // 可以在接口响应后统一处理结果
 request.interceptors.response.use(
-  (response) => {
+  async (response) => {
     let res = response.data
     // 如果是返回的文件
     if (response.config.responseType === 'blob') {
@@ -39,9 +39,11 @@ request.interceptors.response.use(
     if (typeof res === 'string') {
       res = res ? JSON.parse(res) : res
     }
-    if (res.code === '401') {
+    if (res.code && res.code != 200) {
       ElMessage.error(res.msg)
-      router.push('/')
+      if (res.code >= 1003 && res.code <= 1006) {
+        await router.push('/')
+      }
     }
     return res
   },

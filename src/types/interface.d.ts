@@ -1,10 +1,9 @@
 declare interface RServerData {
-  code: string
+  code: number
   msg: string
   data: any
 }
 declare interface PServerData {
-  code: string
   records: any
   total: number
 }

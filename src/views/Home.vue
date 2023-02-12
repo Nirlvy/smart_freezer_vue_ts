@@ -1,6 +1,6 @@
 <template>
-  <div class="cardline">
-    <el-row :gutter="20">
+  <div class="line">
+    <el-row :gutter="20" style="height: 45%">
       <el-col :span="4">
         <el-card :body-style="{ padding: '0px' }">
           <img
@@ -76,27 +76,34 @@
         </el-card>
       </el-col>
     </el-row>
+    <el-row
+      :gutter="20"
+      style="justify-content: center; height: 50%; margin-top: 2%"
+    >
+      <el-col :span="8"><div id="shelves" class="charts" /></el-col>
+      <el-col :span="8"> <div id="sold" class="charts" /></el-col>
+      <el-col :span="8"> <div id="pie" class="charts" /></el-col>
+    </el-row>
   </div>
-  <el-row style="justify-content: center; height: 45%">
-    <div id="shelves" class="charts" />
-    <div id="sold" class="charts" />
-    <div id="pie" class="charts" />
-  </el-row>
 </template>
 
 <script lang="ts" setup>
 import * as echarts from 'echarts'
 import { ElRow, ElCol, ElCard } from 'element-plus'
-import { onMounted, reactive } from 'vue'
+import { onBeforeUnmount, onMounted, reactive } from 'vue'
 import { useStore } from '../store/store'
 import request from '../utils/request'
 
 onMounted(() => {
   valueInit()
+  window.addEventListener('resize', echartsInit)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', echartsInit)
 })
 const store = useStore()
 const value = reactive({
-  freezerId: [0],
+  freezerId: [] as number[],
   totalfreezer: 0,
   runfreezer: 0,
   totalshelves: 0,
@@ -120,29 +127,20 @@ const month = [
 const user = store.user
 const valueInit = () => {
   request
-    .get<{ data: PServerData }, PServerData>(
-      '/user/page?pageNum=1' + '&pageSize=1' + '&userName=' + user.userName
-    )
+    .get<{ data: RServerData }, RServerData>('/freezer/home?id=' + user.id)
     .then((res) => {
-      if (res.code != '401') {
-        value.totalshelves = res.records[0].shelves
-        value.totalsold = res.records[0].sold
-        request
-          .get<{ data: RServerData }, RServerData>(
-            '/freezer/home?id=' + user.id
-          )
-          .then((res) => {
-            value.totalfreezer = res.data.totalfreezer
-            value.runfreezer = res.data.runfreezer
-            value.waiting = res.data.needfreezer
-            value.freezerId = res.data.freezerId
-            echartsInit()
-          })
-      }
+      value.totalfreezer = res.data.totalfreezer
+      value.runfreezer = res.data.runfreezer
+      value.waiting = res.data.needfreezer
+      value.freezerId = res.data.freezerId
+      user.freezerId = res.data.freezerId
+      echartsInit()
     })
 }
-
 const echartsInit = () => {
+  echarts.init(document.getElementById('shelves') as HTMLElement).dispose()
+  echarts.init(document.getElementById('sold') as HTMLElement).dispose()
+  echarts.init(document.getElementById('pie') as HTMLElement).dispose()
   var shelvesChartDom = document.getElementById('shelves')
   var shelvesChart = echarts.init(shelvesChartDom as HTMLElement)
   var shelvesOption = {
@@ -213,7 +211,6 @@ const echartsInit = () => {
     },
     series: [
       {
-        name: 'Access From',
         type: 'pie',
         radius: '50%',
         label: {
@@ -233,32 +230,46 @@ const echartsInit = () => {
   if (value.freezerId.length != 0)
     request
       .post<{ data: RServerData }, RServerData>(
-        '/echarts/months',
+        '/shelvesLog/monthsCharts',
         value.freezerId
       )
       .then((res) => {
         shelvesOption.series[0].data = res.data[0]
+        value.totalshelves = res.data[0].reduce(
+          (acc: number, cur: number) => acc + cur,
+          0
+        )
         soldOption.series[0].data = res.data[1]
+        value.totalsold = res.data[1].reduce(
+          (acc: number, cur: number) => acc + cur,
+          0
+        )
         shelvesOption && shelvesChart.setOption(shelvesOption)
         soldOption && soldChart.setOption(soldOption)
-        pieOption && pieChart.setOption(pieOption)
       })
   request
-    .post<{ data: RServerData }, RServerData>('/echarts/sold', value.freezerId)
+    .post<{ data: RServerData }, RServerData>(
+      '/shelvesLog/soldCharts',
+      value.freezerId
+    )
     .then((res) => {
       pieOption.series[0].data = res.data[0].map(
-        (item: number | string, index: number) => ({
+        (item: string, index: number) => ({
           name: item,
           value: res.data[1][index],
         })
       )
+      user.goods = res.data[0]
+      pieOption && pieChart.setOption(pieOption)
     })
 }
 </script>
 
 <style scoped>
-.cardline {
+.line {
   padding: 40px;
+  height: 100%;
+  overflow: hidden;
 }
 .value {
   font-size: 12px;
@@ -276,9 +287,8 @@ const echartsInit = () => {
 }
 
 .charts {
-  width: 30%;
+  width: 100%;
   height: 100%;
-  margin: 20px;
   border: 10px;
   padding-top: 30px;
   border-radius: 5px;

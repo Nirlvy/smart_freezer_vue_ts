@@ -2,20 +2,21 @@
   <div style="padding: 10px 0">
     <el-input
       v-model="input.id"
-      class="ml-10"
-      style="width: 220px"
+      class="ml-10 input"
       placeholder="ID"
       clearable
       :prefix-icon="InfoFilled"
-      @clear="load()"
-    /><el-input
+      @clear="load"
+      @input="load"
+    />
+    <el-input
       v-model="input.userName"
-      class="ml-10"
-      style="width: 220px"
+      class="ml-10 input"
       placeholder="用户名"
       clearable
       :prefix-icon="User"
-      @clear="load()"
+      @clear="load"
+      @input="load"
     />
     <el-date-picker
       v-model="input.date"
@@ -24,30 +25,11 @@
       placeholder="日期"
       format="YYYY-MM-DD"
       value-format="YYYY-MM-DD"
-      @clear="load()"
-    />
-    <el-input
-      v-model="input.shelves"
-      class="ml-10"
-      style="width: 220px"
-      placeholder="数量前后100的上架"
       clearable
-      :prefix-icon="ShoppingCartFull"
-      @clear="load()"
+      @clear="load"
+      @change="load"
     />
-    <el-input
-      v-model="input.sold"
-      class="ml-10"
-      style="width: 220px"
-      placeholder="数量前后100的售出"
-      clearable
-      :prefix-icon="ShoppingCart"
-      @clear="load()"
-    />
-    <el-button class="ml-10" :icon="Search" @click="clear()"> 清除 </el-button>
-    <el-button type="primary" class="ml-10" :icon="Search" @click="load()">
-      搜索
-    </el-button>
+    <el-button class="ml-10" :icon="Search" @click="clear"> 清除 </el-button>
   </div>
 
   <div style="padding: 10px 10px">
@@ -82,7 +64,7 @@
     >
   </div>
 
-  <el-dialog v-model="new_dialog" title="新增用户">
+  <el-dialog v-model="new_dialog" title="新增用户" width="400px">
     <el-form
       ref="ruleFormRef"
       :model="register_form"
@@ -167,7 +149,7 @@
     </el-table-column>
   </el-table>
 
-  <el-dialog v-model="edit_dialog" title="用户信息修改" width="25%">
+  <el-dialog v-model="edit_dialog" title="用户信息修改" width="340px">
     <el-form
       ref="ruleFormRef"
       :model="edit_form"
@@ -200,20 +182,6 @@
           value-format="YYYY-MM-DD HH:mm:ss"
         />
       </el-form-item>
-      <el-form-item label="上架数" prop="shelves">
-        <el-input
-          v-model="edit_form.shelves"
-          placeholder="请输入你的新上架数"
-          clearable
-        />
-      </el-form-item>
-      <el-form-item label="售出数" prop="sold">
-        <el-input
-          v-model="edit_form.sold"
-          placeholder="请输入你的新售出数"
-          clearable
-        />
-      </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
@@ -229,7 +197,7 @@
     <el-pagination
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
-      :page-sizes="[5, 10, 15]"
+      :page-sizes="[5, 8, 10]"
       :background="true"
       layout="total, sizes, prev, pager, next, jumper"
       :total="total"
@@ -250,8 +218,6 @@ import {
   FolderAdd,
   User,
   InfoFilled,
-  ShoppingCartFull,
-  ShoppingCart,
   UserFilled,
   Lock,
 } from '@element-plus/icons-vue'
@@ -281,8 +247,7 @@ const new_dialog = ref(false)
 const edit_dialog = ref(false)
 const multipleSelection = ref<Userinfor[]>([])
 const upload = ref<UploadInstance>()
-const server = store.ServerIp
-const server_url = ref(server + '/user/import')
+const server_url = ref(store.ServerIp + '/user/import')
 const input = reactive({
   id: '',
   userName: '',
@@ -300,8 +265,6 @@ const edit_form = reactive({
   userName: '',
   role: 'user',
   createTime: '',
-  shelves: '',
-  sold: '',
 })
 const ruleFormRef = ref<FormInstance>()
 const validatePass = (_rule: any, value: any, callback: any) => {
@@ -324,7 +287,6 @@ const validatePass2 = (_rule: any, value: any, callback: any) => {
     callback()
   }
 }
-
 const register_rules = reactive<FormRules>({
   userName: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -347,14 +309,6 @@ const edit_rules = reactive<FormRules>({
   ],
   role: [{ required: true }],
   createTime: [{ required: true, message: '请输入注册时间', trigger: 'blur' }],
-  shelves: [
-    { required: true, message: '请输入上架数量', trigger: 'blur' },
-    { type: 'number', message: '请输入数字', trigger: 'blur' },
-  ],
-  sold: [
-    { required: true, message: '请输入售出数量', trigger: 'blur' },
-    { type: 'number', message: '请输入数字', trigger: 'blur' },
-  ],
 })
 
 const clear = () => {
@@ -393,11 +347,7 @@ const load = () => {
         '&userName=' +
         input.userName +
         '&createTime=' +
-        input.date +
-        '&shelves=' +
-        input.shelves +
-        '&sold=' +
-        input.sold
+        input.date
     )
     .then((res) => {
       tableData.value = res.records
@@ -415,7 +365,7 @@ const new_crofirm = async (formEl: FormInstance | undefined) => {
           register_form
         )
         .then((res) => {
-          if (res.code === '200') {
+          if (res.code === 200) {
             ElMessage.success('注册成功')
             new_dialog.value = false
             currentPage.value = Math.ceil((total.value + 1) / pageSize.value)
@@ -473,24 +423,7 @@ const batchDelete = () => {
     }
   })
 }
-const exp = async () => {
-  try {
-    const res = await request.get(server + '/user/export', {
-      responseType: 'blob',
-    })
-    const blob = new Blob([res.data], {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    })
-    const fileName = '用户信息.xlsx'
-    const link = document.createElement('a')
-    link.href = window.URL.createObjectURL(blob)
-    link.download = fileName
-    link.click()
-    window.URL.revokeObjectURL(link.href)
-  } catch (err) {
-    console.error(err)
-  }
-}
+const exp = async () => {}
 const handleUpSuccess = () => {
   ElMessage.success('上传成功')
   load()
@@ -506,4 +439,8 @@ const handleExceed: UploadProps['onExceed'] = (files) => {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.input {
+  width: 15%;
+}
+</style>

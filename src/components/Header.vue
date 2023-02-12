@@ -57,7 +57,6 @@ const user = store.user
 
 const logout = () => {
   router.push('/login')
-  localStorage.removeItem('user')
   ElMessage.success('退出成功')
 }
 </script>
@@ -79,7 +78,6 @@ const logout = () => {
 .breadcrumb-item :deep() .el-breadcrumb__inner {
   color: white;
   font-weight: 400;
-  /* color: var(--el-text-color-primary); */
 }
 
 .breadcrumb-item:hover :deep() .el-breadcrumb__inner {

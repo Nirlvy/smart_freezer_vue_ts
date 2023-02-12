@@ -2,17 +2,17 @@
   <div style="padding: 10px 0">
     <el-select
       v-model="input.id"
-      class="ml-10"
+      class="ml-10 input"
       placeholder="冰柜ID"
-      style="width: 220px"
       multiple
       collapse-tags
       collapse-tags-tooltip
       clearable
-      @clear="load()"
+      @clear="load"
+      @change="load"
     >
       <el-option
-        v-for="item in searchData.freezerId"
+        v-for="item in user.freezerId"
         :key="item"
         :label="item"
         :value="item"
@@ -20,16 +20,17 @@
     </el-select>
     <el-select
       v-model="input.name"
-      class="ml-10"
+      class="ml-10 input"
       placeholder="商品名"
       multiple
       collapse-tags
       collapse-tags-tooltip
       clearable
-      @clear="load()"
+      @clear="load"
+      @change="load"
     >
       <el-option
-        v-for="item in searchData.goods"
+        v-for="item in user.goods"
         :key="item"
         :label="item"
         :value="item"
@@ -37,10 +38,11 @@
     </el-select>
     <el-select
       v-model="input.state"
-      class="ml-10"
+      class="ml-10 input"
       placeholder="状态"
-      style="width: 220px"
       clearable
+      @clear="load"
+      @change="load"
     >
       <el-option
         v-for="item in states"
@@ -56,7 +58,8 @@
       placeholder="上架日期"
       format="YYYY-MM-DD"
       value-format="YYYY-MM-DD"
-      @clear="load()"
+      @clear="load"
+      @change="load"
     />
     <el-date-picker
       v-model="input.downDate"
@@ -65,12 +68,10 @@
       placeholder="下架日期"
       format="YYYY-MM-DD"
       value-format="YYYY-MM-DD"
-      @clear="load()"
+      @clear="load"
+      @change="load"
     />
-    <el-button class="ml-10" :icon="Search" @click="clear()"> 清除 </el-button>
-    <el-button type="primary" class="ml-10" :icon="Search" @click="load()">
-      搜索
-    </el-button>
+    <el-button class="ml-10" :icon="Search" @click="clear()">清除</el-button>
   </div>
 
   <div style="padding: 10px 10px">
@@ -97,7 +98,7 @@
       <el-form-item label="冰柜" :label-width="70" prop="id">
         <el-select v-model="up_form.id" placeholder="冰柜ID" clearable>
           <el-option
-            v-for="item in upData.freezerId"
+            v-for="item in user.freezerId"
             :key="item"
             :label="item"
             :value="item"
@@ -107,7 +108,7 @@
       <el-form-item label="商品名" :label-width="70" prop="name">
         <el-select v-model="up_form.name" placeholder="商品名" clearable>
           <el-option
-            v-for="item in upData.goods"
+            v-for="item in upGoods"
             :key="item.label"
             :label="item.label"
             :value="item.label"
@@ -182,7 +183,7 @@
     <el-pagination
       v-model:current-page="pageData.currentPage"
       v-model:page-size="pageData.pageSize"
-      :page-sizes="[5, 10, 15]"
+      :page-sizes="[5, 8, 10]"
       :background="true"
       layout="total, sizes, prev, pager, next, jumper"
       :total="pageData.total"
@@ -221,7 +222,6 @@ import {
 import { reactive, ref } from 'vue'
 import { useStore } from '../store/store'
 import request from '../utils/request'
-
 interface goodsinfo {
   id: number
   freezerid: number
@@ -235,7 +235,10 @@ interface GServerData {
   name: string
   disable: boolean
 }
-
+interface Goods {
+  label: string
+  disabled: boolean
+}
 const store = useStore()
 const ruleFormRef = ref<FormInstance>()
 const tableData = ref()
@@ -245,19 +248,8 @@ const pageData = reactive({
   pageSize: 10,
   total: 0,
 })
-const upData = reactive({
-  freezerId: [] as number[],
-  goods: [
-    {
-      label: '',
-      disabled: false,
-    },
-  ],
-})
-const searchData = reactive({
-  freezerId: [] as number[],
-  goods: [] as string[],
-})
+
+const upGoods = ref<Goods[]>([])
 const input = reactive({
   id: [] as number[],
   name: [] as string[],
@@ -280,7 +272,6 @@ const up_form = reactive({
 })
 const multipleSelection = ref<goodsinfo[]>([])
 const user = store.user
-const goods = ref()
 const states = ref([
   {
     value: 'true',
@@ -317,8 +308,6 @@ const load = () => {
         pageData.currentPage +
         '&pageSize=' +
         pageData.pageSize +
-        '&id=' +
-        user.id +
         '&state=' +
         input.state +
         '&upTime=' +
@@ -326,37 +315,23 @@ const load = () => {
         '&downTime=' +
         input.downDate,
       {
-        freezerId: Array.from(input.id),
+        freezerId:
+          Array.from(input.id) === null || Array.from(input.id).length === 0
+            ? user.freezerId
+            : Array.from(input.id),
         name: Array.from(input.name),
       }
     )
     .then((res) => {
-      // TODO:获取四种数据,后端需要重写
       tableData.value = res.records
       pageData.total = res.total
-      data.freezerId = [
-        ...new Set(
-          res.records.map((record: { freezerId: number }) => record.freezerId)
-        ),
-      ] as number[]
     })
-  request
-    .get<{ data: RServerData }, RServerData>(
-      '/shelvesLog/freezer?id=' + user.id
-    )
-    .then((res) => {
-      searchData.freezerId = res.data
-      searchData.goods = res.data[0]
-    })
-  if (!goods.value)
-    request
-      .get<{ data: GServerData[] }, GServerData[]>('/goods')
-      .then((res) => {
-        data.upGoods = Array.from(res).map((item) => ({
-          label: item.name,
-          disabled: item.disable,
-        }))
-      })
+  request.get<{ data: GServerData[] }, GServerData[]>('/goods').then((res) => {
+    upGoods.value = Array.from(res).map((item) => ({
+      label: item.name,
+      disabled: item.disable,
+    }))
+  })
 }
 load()
 const clear = () => {
@@ -423,46 +398,33 @@ const up_crofirm = async (formEl: FormInstance | undefined) => {
             up_form.num
         )
         .then((res) => {
-          if (res.code === '200') {
+          if (res.code === 200) {
             ElMessage.success('上架成功')
+            request
+              .post<{ data: RServerData }, RServerData>(
+                '/shelvesLog/soldCharts',
+                user.freezerId
+              )
+              .then((res) => {
+                if (res.code === 200) {
+                  user.goods = res.data[0]
+                }
+              })
             up_dialog.value = false
             load()
-          } else {
-            ElMessage.error(res.msg)
           }
         })
     }
   })
 }
-const exp = async () => {
-  request
-    .get('/shelvesLog/export?id=' + user.id, {
-      responseType: 'blob',
-    })
-    .then((response) => {
-      if (response) {
-        const blob = new Blob([response.data], {
-          type: 'application/vnd.ms-excel',
-        })
-        const link = document.createElement('a')
-        link.href = window.URL.createObjectURL(blob)
-        link.download = 'data.xlsx'
-        link.click()
-        window.URL.revokeObjectURL(link.href)
-        document.body.removeChild(link)
-      } else {
-        alert('请求失败,请稍后再试')
-      }
-    })
-    .catch((error) => {
-      console.log(error)
-      alert('请求失败,请稍后再试')
-    })
-}
+const exp = async () => {}
 </script>
 
 <style>
 .el-table .success-row {
   --el-table-tr-bg-color: var(--el-color-success-light-9);
+}
+.input {
+  width: 10%;
 }
 </style>

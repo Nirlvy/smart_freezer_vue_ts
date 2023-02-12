@@ -167,7 +167,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import {
   Box,
   Clock,
@@ -199,7 +199,6 @@ const store = useStore()
 const tableData = ref()
 const lineClick = ref(false)
 const user = store.user
-const server = store.ServerIp
 const drawer = ref(false)
 const input = shallowRef()
 const freezerinfo = reactive({
@@ -219,26 +218,22 @@ const markerGroup = reactive({
   position: [] as string[],
   location: [] as string[],
 })
-
-const load = () => {
-  request.get(server + '/freezer/list?id=' + user.id).then((res) => {
+const load = async () => {
+  await request.get('/freezer/list?id=' + user.id).then((res) => {
     tableData.value = res
-    tableData.value.forEach(
-      (marker: { id: number; position: string; location: string }) => {
-        markerGroup.id.push(marker.id)
-        markerGroup.position.push(marker.position)
-        markerGroup.location.push(marker.location)
-      }
-    )
   })
+  initMap()
 }
-load()
 onMounted(() => {
   // TODO:编译前删除
   window._AMapSecurityConfig = {
     securityJsCode: 'f0acd0d469d95ee4c57156a7ceedd9fe',
   }
-  initMap()
+  load()
+  window.addEventListener('resize', initEcharts)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', initEcharts)
 })
 const handleDrawer = () => {
   drawer.value = true
@@ -255,40 +250,45 @@ const initMap = () => {
         zoom: 5,
         center: [118.50685, 31.668765],
       })
-      map.plugin(['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar'], () => {
-        var element = document.querySelector('.rd') as HTMLElement
-        if (element) {
-          var height = element.offsetHeight
-          map.addControl(
-            new AMap.Scale({
-              offset: [10, 20 - height],
-              position: 'LB',
+      map.plugin(
+        ['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar'],
+        async () => {
+          var element = document.querySelector('.rd') as HTMLElement
+          if (element) {
+            var height = element.offsetHeight
+            map.addControl(
+              new AMap.Scale({
+                offset: [10, 20 - height],
+                position: 'LB',
+              })
+            )
+            map.addControl(
+              new AMap.ToolBar({
+                offset: [10, 20 - height],
+                position: 'RB',
+              })
+            )
+            await tableData.value.forEach(
+              (marker: { id: number; position: string; location: string }) => {
+                markerGroup.id.push(marker.id)
+                markerGroup.position.push(marker.position)
+                markerGroup.location.push(marker.location)
+              }
+            )
+            markerGroup.position.forEach((position, index) => {
+              const marker = new AMap.Marker({
+                map: map,
+                position: position.split(',').map(Number),
+              })
+              marker.setLabel({
+                direction: 'top',
+                content: '<div>' + markerGroup.location[index] + '</div>',
+              })
             })
-          )
-          map.addControl(
-            new AMap.ToolBar({
-              offset: [10, 20 - height],
-              position: 'RB',
-            })
-          )
-          markerGroup.position.forEach((position, index) => {
-            const marker = new AMap.Marker({
-              map: map,
-              position: position.split(',').map(Number),
-              // icon: new AMap.Icon({
-              //   size: new AMap.Size(25, 34),
-              //   image: import('../assets/冰箱.png'),
-              //   imageSize: new AMap.Size(135, 40),
-              // }),
-            })
-            marker.setLabel({
-              direction: 'top',
-              content: '<div>' + markerGroup.location[index] + '</div>',
-            })
-          })
-          map.setFitView(null, false, [150, 60, 100, 60])
+            map.setFitView(null, false, [150, 60, 100, 60])
+          }
         }
-      })
+      )
     })
     .catch((e) => {
       ElMessage.error(e)
@@ -403,7 +403,11 @@ const initDrawer = () => {
       ElMessage.error(e)
     })
 }
-const initEcharts = (row: any) => {
+const initEcharts = () => {
+  if (freezerinfo.id == '') {
+    return
+  }
+  echarts.init(document.getElementById('main') as HTMLElement).dispose()
   var chartDom = document.getElementById('main')
   var myChart = echarts.init(chartDom as HTMLElement)
   var option = {
@@ -449,7 +453,7 @@ const initEcharts = (row: any) => {
   }
   request
     .get<{ data: RServerData }, RServerData>(
-      server + '/shelvesLog/freezer?id=' + row.id
+      '/shelvesLog/freezer?id=' + freezerinfo.id
     )
     .then((res) => {
       option.legend.data = [
@@ -473,9 +477,9 @@ const initEcharts = (row: any) => {
 }
 const handleChange = (row: any) => {
   request
-    .post<{ data: RServerData }, RServerData>(server + '/freezer/update', row)
+    .post<{ data: RServerData }, RServerData>('/freezer/update', row)
     .then((res) => {
-      if (res.code === '200') {
+      if (res.code === 200) {
         ElMessage.success('修改成功')
       } else {
         ElMessage.error(res.msg)
@@ -493,23 +497,22 @@ const handleRowClick = (row: any) => {
     }
   }
   lineClick.value = true
-  echarts.init(document.getElementById('main') as HTMLElement).dispose()
   setTimeout(() => {
-    initEcharts(row)
-  }, 1000)
+    initEcharts()
+  }, 500)
 }
 const cancelClick = () => {
   drawer.value = false
 }
 const confirmClick = () => {
   request
-    .post<{ data: RServerData }, RServerData>(server + '/freezer/upmarker', {
+    .post<{ data: RServerData }, RServerData>('/freezer/upmarker', {
       id: freezerinfo.id,
       position: position.value?.toString(),
       location: formattedAddress.value,
     })
     .then((res) => {
-      if (res.code === '200') {
+      if (res.code === 200) {
         ElMessage.success('位置修改成功')
         load()
         Object.assign(freezerinfo, {
@@ -555,23 +558,23 @@ const changeZIndex = () => {
 .left {
   padding: 0.3%;
   height: 100%;
-  width: 50%;
+  width: 70%;
   margin-right: 5px;
   border-radius: 5px;
   box-shadow: 2px 2px 5px #999;
   will-change: width;
-  transition: width 1s ease-in-out;
+  transition: width 0.5s ease-in-out;
 }
 .left.click {
   width: 30%;
 }
 .right {
   height: 100%;
-  width: 50%;
+  width: 30%;
   display: flex;
   flex-direction: column;
   will-change: width;
-  transition: width 1s ease-in-out;
+  transition: width 0.5s ease-in-out;
 }
 .right.click {
   width: 70%;

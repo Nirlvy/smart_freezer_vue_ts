@@ -12,10 +12,10 @@
       @change="load"
     >
       <el-option
-        v-for="item in user.freezerId"
-        :key="item"
-        :label="item"
-        :value="item"
+        v-for="item in freezer"
+        :key="item.freezerId"
+        :label="item.freezerId"
+        :value="item.freezerId"
       />
     </el-select>
     <el-select
@@ -73,9 +73,13 @@
     />
     <el-button class="ml-10" :icon="Search" @click="clear()">清除</el-button>
   </div>
-
   <div style="padding: 10px 10px">
-    <el-button type="primary" :icon="Plus" @click="up_dialog = true">
+    <el-button
+      v-if="freezer.length != 0"
+      type="primary"
+      :icon="Plus"
+      @click="upButtonClick"
+    >
       新增
     </el-button>
     <el-popconfirm
@@ -92,21 +96,26 @@
       导出
     </el-button>
   </div>
-
-  <el-dialog v-model="up_dialog" title="新上架" width="400px">
-    <el-form ref="ruleFormRef" :model="up_form" :rules="up_rules" status-icon>
+  <el-dialog v-model="upDialog" title="新上架" width="400px">
+    <el-form ref="ruleFormRef" :model="upForm" :rules="upRules" status-icon>
       <el-form-item label="冰柜" :label-width="70" prop="id">
-        <el-select v-model="up_form.id" placeholder="冰柜ID" clearable>
+        <el-select
+          v-model="upForm.id"
+          placeholder="冰柜ID"
+          clearable
+          @change="inputIdChange"
+        >
           <el-option
-            v-for="item in user.freezerId"
-            :key="item"
-            :label="item"
-            :value="item"
+            v-for="item in freezer"
+            :key="item.freezerId"
+            :label="item.freezerId"
+            :value="item.freezerId"
+            :disabled="item.disabled"
           />
         </el-select>
       </el-form-item>
       <el-form-item label="商品名" :label-width="70" prop="name">
-        <el-select v-model="up_form.name" placeholder="商品名" clearable>
+        <el-select v-model="upForm.name" placeholder="商品名" clearable>
           <el-option
             v-for="item in upGoods"
             :key="item.label"
@@ -117,36 +126,26 @@
         </el-select>
       </el-form-item>
       <el-form-item label="数量" :label-width="70" prop="num">
-        <el-input
-          v-model="up_form.num"
-          :prefix-icon="Star"
-          placeholder="请输入上架数量"
-          clearable
-          minlength="1"
-          maxlength="3"
-          show-word-limit
-          style="width: 225px"
-        />
+        <el-input-number v-model="upForm.num" :min="1" :max="inputMax" />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="up_dialog = false">取消</el-button>
-        <el-button type="primary" @click="up_crofirm(ruleFormRef)">
+        <el-button @click="upDialog = false">取消</el-button>
+        <el-button type="primary" @click="upCrofirm(ruleFormRef)">
           确定
         </el-button>
       </span>
     </template>
   </el-dialog>
-
   <el-table
     :data="tableData"
     :row-class-name="tableRowClassName"
     @selection-change="selection"
   >
     <el-table-column type="selection" width="30" />
-    <el-table-column prop="id" label="ID" width="50" />
-    <el-table-column prop="freezerId" label="冰柜ID" width="80" />
+    <el-table-column prop="id" label="ID" min-width="30" />
+    <el-table-column prop="freezerId" label="冰柜ID" min-width="50" />
     <el-table-column prop="name" label="商品名" />
     <el-table-column label="状态">
       <template #default="scope">
@@ -160,9 +159,9 @@
         />
       </template>
     </el-table-column>
-    <el-table-column prop="upTime" label="上架时间" />
-    <el-table-column prop="downTime" label="下架时间" />
-    <el-table-column label="操作" width="100">
+    <el-table-column prop="upTime" label="上架时间" min-width="135" />
+    <el-table-column prop="downTime" label="下架时间" min-width="135" />
+    <el-table-column label="操作" min-width="70">
       <template #default="scope">
         <el-popconfirm
           title="确定删除?"
@@ -199,7 +198,6 @@ import {
   Search,
   DocumentCopy,
   Plus,
-  Star,
 } from '@element-plus/icons-vue'
 import {
   ElButton,
@@ -207,7 +205,6 @@ import {
   ElDialog,
   ElForm,
   ElFormItem,
-  ElInput,
   ElMessage,
   ElOption,
   ElPagination,
@@ -222,9 +219,10 @@ import {
 import { reactive, ref } from 'vue'
 import { useStore } from '../store/store'
 import request from '../utils/request'
+
 interface goodsinfo {
   id: number
-  freezerid: number
+  freezerId: number
   name: string
   state: boolean | string
   upTime: string
@@ -239,16 +237,19 @@ interface Goods {
   label: string
   disabled: boolean
 }
+
 const store = useStore()
+const user = store.user
+const freezer = store.freezer
 const ruleFormRef = ref<FormInstance>()
 const tableData = ref()
-const up_dialog = ref(false)
+const upDialog = ref(false)
+const inputMax = ref(1)
 const pageData = reactive({
   currentPage: 1,
   pageSize: 10,
   total: 0,
 })
-
 const upGoods = ref<Goods[]>([])
 const input = reactive({
   id: [] as number[],
@@ -257,7 +258,8 @@ const input = reactive({
   upDate: '',
   downDate: '',
 })
-const edit_form = reactive({
+// TODO:类型问题
+const editForm = reactive({
   id: '',
   freezerId: '',
   name: '',
@@ -265,13 +267,12 @@ const edit_form = reactive({
   upTime: '',
   downTime: '',
 })
-const up_form = reactive({
-  id: '',
+const upForm = reactive({
+  id: freezer.length != 0 ? freezer[0].freezerId : 0,
   name: '',
-  num: '',
+  num: 0,
 })
 const multipleSelection = ref<goodsinfo[]>([])
-const user = store.user
 const states = ref([
   {
     value: 'true',
@@ -288,7 +289,7 @@ const tableRowClassName = ({ row }: { row: goodsinfo }) => {
   }
   return ''
 }
-const up_rules = reactive<FormRules>({
+const upRules = reactive<FormRules>({
   id: [{ required: true, message: '请选择冰柜', trigger: 'blur' }],
   name: [{ required: true, message: '请选择商品名', trigger: 'blur' }],
   num: [
@@ -301,9 +302,10 @@ const up_rules = reactive<FormRules>({
     },
   ],
 })
+
 const load = () => {
   request
-    .post<{ data: PServerData }, PServerData>(
+    .post(
       '/shelvesLog/page?pageNum=' +
         pageData.currentPage +
         '&pageSize=' +
@@ -317,7 +319,7 @@ const load = () => {
       {
         freezerId:
           Array.from(input.id) === null || Array.from(input.id).length === 0
-            ? user.freezerId
+            ? store.getValue('freezerId')
             : Array.from(input.id),
         name: Array.from(input.name),
       }
@@ -326,6 +328,13 @@ const load = () => {
       tableData.value = res.records
       pageData.total = res.total
     })
+  request
+    .post('/shelvesLog/homeinfo', store.getValue('freezerId'))
+    .then((res) => {
+      if (res.code === 200) {
+        user.goods = res.data.soldCharts[0]
+      }
+    })
   request.get<{ data: GServerData[] }, GServerData[]>('/goods').then((res) => {
     upGoods.value = Array.from(res).map((item) => ({
       label: item.name,
@@ -333,7 +342,9 @@ const load = () => {
     }))
   })
 }
+
 load()
+
 const clear = () => {
   Object.assign(input, {
     id: [] as number[],
@@ -343,81 +354,127 @@ const clear = () => {
     downDate: '',
   })
 }
+
 const selection = (val: goodsinfo[]) => {
   multipleSelection.value = val
 }
+
+const inputIdChange = () => {
+  // TODO:可能简化
+  if (!freezer[0].capacity) {
+    request.get('/freezer/list?id=' + user.id).then((res) => {
+      ;(res as any).forEach((item: { capacity: number }, index: number) => {
+        freezer[index].capacity = item.capacity
+      })
+    })
+  }
+  let index = store.getIndex('freezerId', upForm.id)
+  inputMax.value = freezer[index].capacity - freezer[index].shelves
+}
+
 const handleDelete = (row: string) => {
-  Object.assign(edit_form, row)
-  request.delete('/shelvesLog/' + edit_form.id).then((res) => {
+  Object.assign(editForm, row)
+  request.delete('/shelvesLog/' + editForm.id).then((res) => {
     if (res) {
       ElMessage.success('删除成功！')
+      if (editForm.state === 'true') {
+        freezer[store.getIndex('capacity', upForm.id)].shelves -= 1
+      }
       load()
     }
   })
 }
+
 const batchDelete = () => {
   let ids = multipleSelection.value.map((v) => v.id)
+  let states = multipleSelection.value.map((v) => [v.freezerId, v.state])
   request.delete('/shelvesLog/del/batch', { data: ids }).then((res) => {
     if (res) {
       ElMessage.success('删除成功！')
+      let result = states.reduce((acc, cur) => {
+        if (cur[1]) {
+          acc[cur[0].toString()] = (acc[cur[0].toString()] || 0) + 1
+        }
+        return acc
+      }, {})
+      for (let key in result) {
+        let freezerId = parseInt(key)
+        let count = result[key]
+        let index = store.getIndex('freezerId', freezerId)
+        if (index !== -1) {
+          freezer[index].shelves -= count
+        }
+      }
       load()
     }
   })
 }
+
 const Change = (row: { state: boolean }) => {
   if (!row.state) {
-    Object.assign(edit_form, row)
-    const currentDate = new Date()
-    const year = currentDate.getFullYear()
-    const month = (currentDate.getMonth() + 1).toString().padStart(2, '0')
-    const day = currentDate.getDate().toString().padStart(2, '0')
-    const hours = currentDate.getHours().toString().padStart(2, '0')
-    const minutes = currentDate.getMinutes().toString().padStart(2, '0')
-    const seconds = currentDate.getSeconds().toString().padStart(2, '0')
-    const time = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
-    edit_form.downTime = time
-    request.post('/shelvesLog/sold', edit_form).then((res) => {
+    Object.assign(editForm, row)
+    editForm.downTime = store.getTime()
+    request.post('/shelvesLog/update', editForm).then((res) => {
       if (res) {
         ElMessage.success('已设置为售出')
+        freezer[store.getIndex('freezerId', upForm.id)].shelves -= 1
         load()
       }
     })
   }
 }
-const up_crofirm = async (formEl: FormInstance | undefined) => {
+
+const upCrofirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
       request
-        .post<{ data: RServerData }, RServerData>(
+        .post(
           '/shelvesLog/up?id=' +
-            up_form.id +
+            upForm.id +
             '&name=' +
-            up_form.name +
+            upForm.name +
             '&num=' +
-            up_form.num
+            upForm.num
         )
         .then((res) => {
           if (res.code === 200) {
             ElMessage.success('上架成功')
-            request
-              .post<{ data: RServerData }, RServerData>(
-                '/shelvesLog/soldCharts',
-                user.freezerId
-              )
-              .then((res) => {
-                if (res.code === 200) {
-                  user.goods = res.data[0]
-                }
-              })
-            up_dialog.value = false
+            upDialog.value = false
+            freezer[store.getIndex('freezerId', upForm.id)].shelves += Number(
+              upForm.num
+            )
             load()
           }
         })
+      let time = store.getTime()
+      request.post<{ data: RServerData }, RServerData>('/freezer/update', {
+        id: upForm.id,
+        lastSupply: time,
+      })
     }
   })
 }
-const exp = async () => {}
+
+const upButtonClick = () => {
+  upDialog.value = true
+  inputIdChange()
+}
+
+const exp = async () => {
+  request
+    .get('/shelvesLog/export?id=' + user.id, { responseType: 'blob' })
+    .then((res) => {
+      const blob = new Blob([res] as any)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = '商品信息.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+    })
+}
 </script>
 
 <style>

@@ -122,8 +122,6 @@
     <el-table-column prop="userName" label="用户名" />
     <el-table-column prop="role" label="身份" />
     <el-table-column prop="createTime" label="注册时间" />
-    <el-table-column prop="shelves" label="上架总数" />
-    <el-table-column prop="sold" label="销售总数" />
     <el-table-column label="操作" width="180">
       <template #default="scope">
         <el-button
@@ -233,10 +231,6 @@ interface Userinfor {
   shelves: number
   sold: number
 }
-interface ServerData {
-  records: string
-  total: number
-}
 
 const store = useStore()
 const tableData = ref()
@@ -301,7 +295,6 @@ const register_rules = reactive<FormRules>({
     { validator: validatePass2, trigger: 'blur' },
   ],
 })
-
 const edit_rules = reactive<FormRules>({
   userName: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -317,7 +310,6 @@ const clear = () => {
     password: '',
     confirmPassword: '',
   })
-
   Object.assign(edit_form, {
     id: '',
     userName: '',
@@ -337,7 +329,7 @@ const clear = () => {
 
 const load = () => {
   request
-    .get<{ data: ServerData }, ServerData>(
+    .get(
       '/user/page?pageNum=' +
         currentPage.value +
         '&pageSize=' +
@@ -354,33 +346,30 @@ const load = () => {
       total.value = res.total
     })
 }
+
 load()
+
 const new_crofirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request
-        .post<{ data: RServerData }, RServerData>(
-          '/user/register',
-          register_form
-        )
-        .then((res) => {
-          if (res.code === 200) {
-            ElMessage.success('注册成功')
-            new_dialog.value = false
-            currentPage.value = Math.ceil((total.value + 1) / pageSize.value)
-            clear()
-          } else {
-            ElMessage.error(res.msg)
-          }
-        })
+      request.post('/user/register', register_form).then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('注册成功')
+          new_dialog.value = false
+          currentPage.value = Math.ceil((total.value + 1) / pageSize.value)
+          clear()
+        }
+      })
     }
   })
 }
+
 const handleEdit = (row: string) => {
   Object.assign(edit_form, row)
   edit_dialog.value = true
 }
+
 const edit_corfirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
@@ -402,6 +391,7 @@ const edit_corfirm = async (formEl: FormInstance | undefined) => {
     }
   })
 }
+
 const handleDelete = (row: string) => {
   Object.assign(edit_form, row)
   request.delete('/user/' + edit_form.id).then((res) => {
@@ -411,9 +401,11 @@ const handleDelete = (row: string) => {
     }
   })
 }
+
 const selection = (val: Userinfor[]) => {
   multipleSelection.value = val
 }
+
 const batchDelete = () => {
   let ids = multipleSelection.value.map((v) => v.id)
   request.delete('/user/del/batch', { data: ids }).then((res) => {
@@ -423,14 +415,29 @@ const batchDelete = () => {
     }
   })
 }
-const exp = async () => {}
+
+const exp = () => {
+  request.get('/user/export', { responseType: 'blob' }).then((res) => {
+    const blob = new Blob([res] as any)
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '用户信息.xlsx'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  })
+}
+
 const handleUpSuccess = () => {
   ElMessage.success('上传成功')
   load()
 }
+
 const handleUpError = () => {
   ElMessage.error('上传失败，请稍后再试')
 }
+
 const handleExceed: UploadProps['onExceed'] = (files) => {
   upload.value?.clearFiles()
   const file = files[0] as UploadRawFile

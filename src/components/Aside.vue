@@ -14,7 +14,6 @@
         </el-icon>
         <span>系统首页</span>
       </el-menu-item>
-
       <el-sub-menu
         v-if="
           menus.includes(3) ||
@@ -49,7 +48,6 @@
           管理控制
         </el-menu-item>
       </el-sub-menu>
-
       <el-sub-menu v-if="menus.includes(7)" index="2">
         <template #title>
           <el-icon>

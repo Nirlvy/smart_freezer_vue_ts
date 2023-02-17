@@ -80,24 +80,24 @@ const rules = reactive<FormRules>({
   ],
 })
 const ruleFormRef = ref<FormInstance>()
+
 const login = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request
-        .post<{ data: RServerData }, RServerData>('/user/login', user)
-        .then((res) => {
-          if (res.code === 200) {
-            const userinfo = { ...res.data }
-            delete userinfo.password
-            store.user = userinfo
-            setRotes()
-            router.push('/manage/home')
-            ElMessage.success('登录成功')
-          } else {
-            ElMessage.error(res.msg)
-          }
-        })
+      request.post('/user/login', user).then((res) => {
+        if (res.code === 200) {
+          const userinfo = { ...res.data }
+          delete userinfo.password
+          store.user = userinfo
+          setTimeout(() => {
+            setRotes().then(() => {
+              router.push('/manage/home')
+              ElMessage.success('登录成功')
+            })
+          }, 500)
+        }
+      })
     }
   })
 }

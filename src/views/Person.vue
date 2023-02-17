@@ -58,21 +58,6 @@
         format="YYYY-MM-DD HH:mm:ss"
         placeholder="请输入新的时间"
         clearable
-      /> </el-form-item
-    ><el-form-item prop="shelves" label="上架数">
-      <el-input
-        v-model="user.shelves"
-        :prefix-icon="ShoppingCartFull"
-        placeholder="请输入你的新上架数"
-        clearable
-      />
-    </el-form-item>
-    <el-form-item prop="sold" label="售出数">
-      <el-input
-        v-model="user.sold"
-        :prefix-icon="ShoppingCart"
-        placeholder="请输入你的新售出数"
-        clearable
       />
     </el-form-item>
     <el-form-item class="el-form-button">
@@ -92,13 +77,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  Lock,
-  ShoppingCart,
-  ShoppingCartFull,
-  UserFilled,
-  Plus,
-} from '@element-plus/icons-vue'
+import { Lock, UserFilled, Plus } from '@element-plus/icons-vue'
 import {
   FormRules,
   FormInstance,
@@ -112,7 +91,7 @@ import {
   ElIcon,
   ElUpload,
 } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '../store/store'
 import request from '../utils/request'
@@ -123,8 +102,6 @@ const user = reactive({
   password: '',
   confirmPassword: '',
   createTime: '',
-  shelves: '',
-  sold: '',
   img: '',
 })
 const router = useRouter()
@@ -134,25 +111,23 @@ const ServerIp = store.ServerIp
 const uploadIp = ServerIp + '/file/upload'
 const localuser = store.user
 
-onMounted(() => {
-  load()
-})
-
 const load = () => {
   request
-    .get<{ data: PServerData }, PServerData>(
+    .get(
       '/user/page?pageNum=1' + '&pageSize=1' + '&userName=' + localuser.userName
     )
-    .then((res: any) => {
+    .then((res) => {
       if (res.records && res.records[0]) {
         Object.assign(user, res.records[0] as object)
       }
     })
 }
 
-const validatePass2 = (rule: any, value: any, callback: any) => {
+load()
+
+const validatePass2 = (_rule: any, value: any, callback: any) => {
   if (user.confirmPassword !== '') {
-    if (value !== user.password) {
+    if (user.confirmPassword !== user.password) {
       callback(new Error('两次输入不一致！'))
     } else {
       callback()
@@ -174,36 +149,20 @@ const rules = reactive<FormRules>({
     { validator: validatePass2, trigger: 'blur' },
   ],
   createTime: [{ required: true, message: '请输入时间', trigger: 'blur' }],
-  shelves: [
-    { required: true, message: '请输入上架数量', trigger: 'blur' },
-    { type: 'number', message: '请输入数字', trigger: 'blur' },
-  ],
-  sold: [
-    { required: true, message: '请输入销售数量', trigger: 'blur' },
-    { type: 'number', message: '请输入数字', trigger: 'blur' },
-  ],
 })
 
 const confirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request
-        .post<{ data: RServerData }, RServerData>('/user', user)
-        .then((res) => {
-          if (res) {
-            ElMessage({
-              message: '修改成功',
-              type: 'success',
-            })
-            router.push('/home')
-          } else {
-            ElMessage({
-              message: '修改失败',
-              type: 'error',
-            })
-          }
-        })
+      request.post('/user', user).then((res) => {
+        if (res) {
+          ElMessage.success('修改成功')
+          router.push('/login')
+        } else {
+          ElMessage.error('修改失败')
+        }
+      })
     }
   })
 }
@@ -214,15 +173,11 @@ const handleAvatarSuccess: UploadProps['onSuccess'] = (response) => {
   newuserinfo.img = response
   newuserinfo.userName = user.userName
   store.user = newuserinfo
-  request
-    .post<{ data: RServerData }, RServerData>('/user', user)
-    .then((res) => {
-      if (res) {
-        ElMessage.success('修改成功')
-      } else {
-        ElMessage.error('修改失败')
-      }
-    })
+  request.post('/user', user).then((res) => {
+    if (res.code === 200) {
+      ElMessage.success('修改成功')
+    }
+  })
 }
 
 const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
@@ -239,23 +194,21 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
 
 <style scoped>
 .form {
-  margin: 30px;
-  width: 600px;
-  padding: 30px;
+  margin: 1%;
+  min-width: 400px;
+  width: 30%;
+  padding: 2%;
   border-radius: 5px;
   box-shadow: 2px 2px 5px #999;
 }
-
 .el-form-button :deep() .el-form-item__content {
   text-align: right;
   display: block;
 }
-
 .avatar-uploader {
   text-align: center;
   padding: 20px;
 }
-
 .avatar-uploader .avatar {
   width: 178px;
   height: 178px;
@@ -272,11 +225,9 @@ const beforeAvatarUpload: UploadProps['beforeUpload'] = (rawFile) => {
   overflow: hidden;
   transition: var(--el-transition-duration-fast);
 }
-
 .avatar-uploader .el-upload:hover {
   border-color: var(--el-color-primary);
 }
-
 .el-icon.avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;

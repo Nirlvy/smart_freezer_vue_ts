@@ -2,22 +2,23 @@
   <div class="bg">
     <div class="left" :class="{ click: lineClick }">
       <el-table :data="tableData" @row-click="handleRowClick">
-        <el-table-column prop="id" label="ID" width="30px" />
+        <el-table-column prop="id" label="ID" width="40px" />
         <el-table-column prop="location" label="位置" />
-        <el-table-column prop="capacity" label="容量" width="40px" />
-        <el-table-column prop="shelves" label="在架" width="40px" />
-        <el-table-column prop="enable" label="启用" width="50px">
+        <el-table-column prop="capacity" label="容量" width="50px" />
+        <el-table-column prop="shelves" label="在架" width="50px" />
+        <el-table-column prop="disabled" label="禁用" width="50px">
           <template #default="scope">
             <el-switch
-              v-model="scope.row.enable"
+              v-model="scope.row.disabled"
               inline-prompt
               active-text="是"
               inactive-text="否"
+              :disabled="scope.row.location == '' || scope.row.location == null"
               @change="handleChange(scope.row)"
             />
           </template>
         </el-table-column>
-        <el-table-column label="补充" width="45px">
+        <el-table-column label="补充" width="50px">
           <template #default="scope">
             <el-switch
               v-model="scope.row.need"
@@ -34,11 +35,24 @@
       <div class="ru">
         <el-descriptions class="des" title="冰柜信息" :column="4" border>
           <template #extra>
+            <span v-show="newButton === '确定'" style="font-size: 15px"
+              >新冰柜容量:
+            </span>
+            <el-input-number
+              v-show="newButton === '确定'"
+              v-model="capacity"
+              placeholder="冰柜容量"
+              style="margin-right: 10px"
+              :min="1"
+            />
+            <el-button type="primary" @click="handleNew"
+              >{{ newButton }}
+            </el-button>
             <el-button
               v-if="freezerinfo.id != ''"
               type="primary"
               @click="handleDrawer"
-              >位置修改
+              >信息修改
             </el-button>
           </template>
           <el-descriptions-item min-width="90px" label-align="center">
@@ -136,21 +150,27 @@
     </div>
     <el-drawer v-model="drawer" size="50%">
       <template #header>
-        <h4>冰柜信息编辑(右键点击地图设置)</h4>
+        <h4>冰柜信息编辑</h4>
       </template>
       <template #default>
         <div class="drawer">
-          <div class="inputDiv">
-            <el-input
-              id="tipinput"
-              v-model="input"
-              class="input"
-              :prefix-icon="Search"
-              placeholder="请输入搜索的地址"
-              clearable
-              @input="changeZIndex"
-            />
-          </div>
+          <el-form class="inputDiv">
+            <el-form-item label="容量">
+              <el-input-number v-model="capacity" :min="capacityMin" />
+            </el-form-item>
+            <el-form-item label="地址">
+              <el-input
+                id="tipinput"
+                v-model="input"
+                class="input"
+                :prefix-icon="Search"
+                placeholder="请输入搜索的地址"
+                clearable
+                @input="changeZIndex"
+              />
+            </el-form-item>
+            <el-form-item label="请在下方地图右键选择新地址:" />
+          </el-form>
           <div class="drawerMap">
             <div id="drawerContainer" />
           </div>
@@ -158,6 +178,7 @@
       </template>
       <template #footer>
         <div style="flex: auto">
+          <el-button type="danger" @click="deleteClick">删除</el-button>
           <el-button @click="cancelClick">取消</el-button>
           <el-button type="primary" @click="confirmClick">保存</el-button>
         </div>
@@ -194,15 +215,18 @@ import {
   ElDrawer,
   ElMessage,
 } from 'element-plus'
-
 const store = useStore()
 const tableData = ref()
 const lineClick = ref(false)
 const user = store.user
+const freezer = store.freezer
 const drawer = ref(false)
 const input = shallowRef()
+const capacity = ref()
+const capacityMin = ref()
 const freezerinfo = reactive({
   id: '',
+  position: '',
   location: '',
   capacity: '',
   shelves: '',
@@ -211,19 +235,46 @@ const freezerinfo = reactive({
   lastSupply: '',
   releaseTime: '',
 })
+const position = ref()
 const formattedAddress = ref()
-const position = ref<[number, number]>()
-const markerGroup = reactive({
-  id: [] as number[],
-  position: [] as string[],
-  location: [] as string[],
-})
-const load = async () => {
-  await request.get('/freezer/list?id=' + user.id).then((res) => {
-    tableData.value = res
+const newButton = ref('新增')
+var myChart: echarts.ECharts
+
+const load = () => {
+  return new Promise<void>((resolve) => {
+    request.get('/freezer/list?id=' + user.id).then((res) => {
+      tableData.value = res
+      freezer.forEach((item, index) => {
+        item.capacity = tableData.value[index].capacity
+      })
+      tableData.value.forEach((item: { shelves: number }, index: number) => {
+        item.shelves = freezer[index].shelves
+      })
+      initMap()
+      resolve()
+    })
   })
-  initMap()
 }
+
+const clear = () => {
+  Object.assign(freezerinfo, {
+    id: '',
+    position: '',
+    location: '',
+    capacity: '',
+    shelves: '',
+    enable: '',
+    need: '',
+    lastSupply: '',
+    releaseTime: '',
+  })
+  drawer.value = false
+  lineClick.value = false
+  echarts.init(document.getElementById('main') as HTMLElement).dispose()
+  tableData.value = null
+  load()
+}
+
 onMounted(() => {
   // TODO:编译前删除
   window._AMapSecurityConfig = {
@@ -232,13 +283,17 @@ onMounted(() => {
   load()
   window.addEventListener('resize', initEcharts)
 })
+
 onBeforeUnmount(() => {
   window.removeEventListener('resize', initEcharts)
 })
+
 const handleDrawer = () => {
   drawer.value = true
+  newButton.value = '新增'
   initDrawer()
 }
+
 const initMap = () => {
   AMapLoader.load({
     key: '6f0e7fef63c86008906382ceeb13036e',
@@ -268,23 +323,35 @@ const initMap = () => {
                 position: 'RB',
               })
             )
+            const markerClick = (e: { target: { _position: any[] } }) => {
+              for (let i = 0; i < tableData.value.length; i++) {
+                if (
+                  tableData.value[i].position === e.target._position.join(',')
+                ) {
+                  handleRowClick(tableData.value[i])
+                }
+              }
+            }
             await tableData.value.forEach(
-              (marker: { id: number; position: string; location: string }) => {
-                markerGroup.id.push(marker.id)
-                markerGroup.position.push(marker.position)
-                markerGroup.location.push(marker.location)
+              (markerinfo: {
+                id: number
+                position: string | null
+                location: string | null
+              }) => {
+                if (markerinfo.position != null) {
+                  const position = markerinfo.position.split(',').map(Number)
+                  const marker = new AMap.Marker({
+                    map: map,
+                    position: position,
+                  })
+                  marker.setLabel({
+                    direction: 'top',
+                    content: '<div>' + markerinfo.location + '</div>',
+                  })
+                  marker.on('click', markerClick)
+                }
               }
             )
-            markerGroup.position.forEach((position, index) => {
-              const marker = new AMap.Marker({
-                map: map,
-                position: position.split(',').map(Number),
-              })
-              marker.setLabel({
-                direction: 'top',
-                content: '<div>' + markerGroup.location[index] + '</div>',
-              })
-            })
             map.setFitView(null, false, [150, 60, 100, 60])
           }
         }
@@ -294,7 +361,11 @@ const initMap = () => {
       ElMessage.error(e)
     })
 }
+
 const initDrawer = () => {
+  capacity.value = freezerinfo.capacity
+  capacityMin.value =
+    freezer[store.getIndex('freezerId', Number(freezerinfo.id))].shelves
   AMapLoader.load({
     key: '6f0e7fef63c86008906382ceeb13036e',
     version: '2.0',
@@ -403,13 +474,16 @@ const initDrawer = () => {
       ElMessage.error(e)
     })
 }
+
 const initEcharts = () => {
   if (freezerinfo.id == '') {
     return
   }
-  echarts.init(document.getElementById('main') as HTMLElement).dispose()
+  if (myChart != undefined) {
+    myChart.dispose()
+  }
   var chartDom = document.getElementById('main')
-  var myChart = echarts.init(chartDom as HTMLElement)
+  myChart = echarts.init(chartDom as HTMLElement)
   var option = {
     tooltip: {
       trigger: 'axis',
@@ -451,11 +525,8 @@ const initEcharts = () => {
     },
     series: [] as any,
   }
-  request
-    .get<{ data: RServerData }, RServerData>(
-      '/shelvesLog/freezer?id=' + freezerinfo.id
-    )
-    .then((res) => {
+  request.get('/shelvesLog/freezer?id=' + freezerinfo.id).then((res) => {
+    if (res.code === 200) {
       option.legend.data = [
         ...res.data[0],
         ...res.data[0].map((item: string) => `${item}售出`),
@@ -473,27 +544,27 @@ const initEcharts = () => {
         })
       }
       option && myChart.setOption(option, true)
-    })
+    }
+  })
 }
+
 const handleChange = (row: any) => {
-  request
-    .post<{ data: RServerData }, RServerData>('/freezer/update', row)
-    .then((res) => {
-      if (res.code === 200) {
-        ElMessage.success('修改成功')
-      } else {
-        ElMessage.error(res.msg)
-        load()
-      }
-    })
+  request.post('/freezer/update', row).then((res) => {
+    if (res.code === 200) {
+      ElMessage.success('修改成功')
+    } else {
+      load()
+    }
+  })
 }
+
 const handleRowClick = (row: any) => {
   Object.assign(freezerinfo, row)
   for (const key in freezerinfo) {
     if (freezerinfo[key] === true) {
-      freezerinfo[key] = '是'
-    } else if (freezerinfo[key] === false) {
       freezerinfo[key] = '否'
+    } else if (freezerinfo[key] === false) {
+      freezerinfo[key] = '是'
     }
   }
   lineClick.value = true
@@ -501,43 +572,77 @@ const handleRowClick = (row: any) => {
     initEcharts()
   }, 500)
 }
+
+const deleteClick = () => {
+  request.delete('/freezer/' + freezerinfo.id).then((res) => {
+    if (res) {
+      ElMessage.success('删除成功！')
+      freezer.splice(store.getIndex('freezerId', freezerinfo.id))
+      clear()
+    }
+  })
+}
+
 const cancelClick = () => {
   drawer.value = false
 }
+
 const confirmClick = () => {
-  request
-    .post<{ data: RServerData }, RServerData>('/freezer/upmarker', {
-      id: freezerinfo.id,
-      position: position.value?.toString(),
-      location: formattedAddress.value,
-    })
-    .then((res) => {
-      if (res.code === 200) {
-        ElMessage.success('位置修改成功')
-        load()
-        Object.assign(freezerinfo, {
-          id: '',
-          location: '',
-          capacity: '',
-          shelves: '',
-          enable: '',
-          need: '',
-          lastSupply: '',
-          releaseTime: '',
-        })
-        echarts.init(document.getElementById('main') as HTMLElement).dispose()
-        drawer.value = false
-        lineClick.value = false
-      } else {
-        ElMessage.error(res.msg)
-      }
-    })
-  // TODO:marker完善
+  for (const key in freezerinfo) {
+    if (freezerinfo[key] === '是') {
+      freezerinfo[key] = false
+    } else if (freezerinfo[key] === '否') {
+      freezerinfo[key] = true
+    }
+  }
+  freezerinfo.capacity = capacity.value
+  freezerinfo.location = formattedAddress.value
+  freezerinfo.position = position.value.toString()
+  request.post('/freezer/update', freezerinfo).then((res) => {
+    if (res.code === 200) {
+      ElMessage.success('修改成功')
+      clear()
+    }
+  })
 }
+
 const changeZIndex = () => {
   document
     .querySelectorAll('.amap-sug-result')
     .forEach((item) => ((item as HTMLElement).style.zIndex = '9999'))
+}
+
+const handleNew = () => {
+  if (newButton.value === '新增') {
+    capacity.value = 1
+    newButton.value = '确定'
+    capacityMin.value = 1
+  } else {
+    freezerinfo.capacity = capacity.value
+    request
+      .get('/freezer/capacity?id=' + user.id + '&capacity=' + capacity.value)
+      .then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('新增成功')
+          newButton.value = '新增'
+          request.get('/freezer/list?id=' + user.id).then((res) => {
+            tableData.value = res
+            freezer.push({
+              freezerId: tableData.value[tableData.value.length - 1].id,
+              disabled: true,
+              shelves: 0,
+              capacity: capacity.value,
+            })
+            tableData.value.forEach(
+              (item: { shelves: number }, index: number) => {
+                item.shelves = freezer[index].shelves
+              }
+            )
+            clear()
+          })
+        }
+      })
+  }
 }
 </script>
 
@@ -608,22 +713,22 @@ const changeZIndex = () => {
   max-height: 60%;
 }
 .drawer {
-  width: 100%;
-  height: calc(100% - 50px);
-}
-.drawerMap {
-  position: absolute;
-  bottom: 0;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
 }
+.drawerMap {
+  bottom: 0;
+  width: 100%;
+  flex: 1;
+}
 .inputDiv {
-  top: -8%;
-  margin-bottom: 5%;
-  width: 50%;
+  width: 100%;
+  min-height: 100px;
 }
 .input {
-  position: absolute;
-  z-index: 1;
+  width: 50%;
+  min-width: 180px;
 }
 </style>

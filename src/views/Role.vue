@@ -76,6 +76,7 @@
 import { ElMessage, ElTree } from 'element-plus'
 import { ref } from 'vue'
 import request from '../utils/request'
+
 interface Tree {
   id?: number
   label: string
@@ -91,6 +92,7 @@ interface GServerData {
   name: string
   disable: boolean
 }
+
 const tdata = ref<tdataOption[]>()
 const disable = ref<number[]>([])
 const delGoods = ref<number[]>([])
@@ -145,6 +147,7 @@ const data: Tree[] = [
     ],
   },
 ]
+
 const load = () => {
   request.get('/roleMenu/' + value.value).then((res) => {
     treeRef.value?.setCheckedKeys(res.data)
@@ -160,24 +163,22 @@ const load = () => {
       .map((item) => item.id)
   })
 }
+
 load()
+
 const save = () => {
   request
-    .post<{ data: RServerData }, RServerData>(
-      '/roleMenu/' + value.value,
-      treeRef.value?.getCheckedKeys(false)
-    )
+    .post('/roleMenu/' + value.value, treeRef.value?.getCheckedKeys(false))
     .then((res) => {
       if (res.code === 200) {
         ElMessage.success('修改成功')
-      } else {
-        ElMessage.error(res.msg)
       }
     })
     .catch((e) => {
       ElMessage.error('系统错误请联系管理员:' + e)
     })
 }
+
 const newUp = () => {
   if (
     newGoods.value != '' &&
@@ -185,25 +186,20 @@ const newUp = () => {
       item.label.includes(newGoods.value)
     )
   ) {
-    request
-      .get<{ data: RServerData }, RServerData>(
-        '/goods/up?name=' + newGoods.value
-      )
-      .then((res) => {
-        if (res.code === 200) {
-          ElMessage.success('新增成功')
-          load()
-        } else {
-          ElMessage.error(res.msg)
-        }
-      })
+    request.get('/goods/up?name=' + newGoods.value).then((res) => {
+      if (res.code === 200) {
+        ElMessage.success('新增成功')
+        load()
+      }
+    })
   } else {
     ElMessage.error('输入框不能为空或者重复')
   }
 }
+
 const del = () => {
   request
-    .delete<{ data: RServerData }, RServerData>('/goods/del', {
+    .delete('/goods/del', {
       data: delGoods.value,
     })
     .then((res) => {
@@ -215,6 +211,7 @@ const del = () => {
       }
     })
 }
+
 const change = () => {
   let filteredArray = tdata.value
     ?.filter((item) => disable.value.includes(item.key))
@@ -225,15 +222,14 @@ const change = () => {
         disable: true,
       }
     })
-  request
-    .post<{ data: RServerData }, RServerData>('/goods/change', filteredArray)
-    .then((res) => {
-      if (res.code != 200) {
-        ElMessage.error('切换失败:' + res.msg)
-        load()
-      }
-    })
+  request.post('/goods/change', filteredArray).then((res) => {
+    if (res.code != 200) {
+      ElMessage.error('切换失败:' + res.msg)
+      load()
+    }
+  })
 }
+
 const rchange = (del: number[]) => {
   delGoods.value = del
 }

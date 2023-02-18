@@ -56,6 +56,7 @@ watch(route, () => {
 const user = store.user
 
 const logout = () => {
+  store.$reset()
   router.push('/login')
   ElMessage.success('退出成功')
 }
@@ -68,22 +69,18 @@ const logout = () => {
   justify-content: space-between;
   height: 100%;
 }
-
 .breadcrumb {
   display: inline-block;
   margin-left: 20px;
   font-size: 16px;
 }
-
 .breadcrumb-item :deep() .el-breadcrumb__inner {
   color: white;
   font-weight: 400;
 }
-
 .breadcrumb-item:hover :deep() .el-breadcrumb__inner {
   color: #388ae6;
 }
-
 .avatar {
   margin-right: 10px;
   width: 30px;

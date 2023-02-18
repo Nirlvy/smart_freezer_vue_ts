@@ -77,13 +77,21 @@
       </el-col>
     </el-row>
     <el-row
+      v-if="store.freezer[0]"
       :gutter="20"
       style="justify-content: center; height: 50%; margin-top: 2%"
     >
-      <el-col :span="8"><div id="shelves" class="charts" /></el-col>
+      <el-col :span="8"> <div id="shelves" class="charts" /></el-col>
       <el-col :span="8"> <div id="sold" class="charts" /></el-col>
       <el-col :span="8"> <div id="pie" class="charts" /></el-col>
     </el-row>
+    <div v-else class="tip">
+      <p>还没有冰柜哦,要</p>
+      <router-link to="/manage/freezer" style="text-decoration: none"
+        >设置
+      </router-link>
+      <p>一个吗</p>
+    </div>
   </div>
 </template>
 
@@ -98,9 +106,11 @@ onMounted(() => {
   valueInit()
   window.addEventListener('resize', echartsInit)
 })
+
 onBeforeUnmount(() => {
   window.removeEventListener('resize', echartsInit)
 })
+
 const store = useStore()
 const value = reactive({
   freezerId: [] as number[],
@@ -125,24 +135,31 @@ const month = [
   '十二月',
 ]
 const user = store.user
+var shelvesChart: echarts.ECharts
+var soldChart: echarts.ECharts
+var pieChart: echarts.ECharts
+
 const valueInit = () => {
-  request
-    .get<{ data: RServerData }, RServerData>('/freezer/home?id=' + user.id)
-    .then((res) => {
-      value.totalfreezer = res.data.totalfreezer
-      value.runfreezer = res.data.runfreezer
-      value.waiting = res.data.needfreezer
-      value.freezerId = res.data.freezerId
-      user.freezerId = res.data.freezerId
-      echartsInit()
-    })
+  request.get('/freezer/home?id=' + user.id).then((res) => {
+    value.totalfreezer = res.data.totalfreezer
+    value.runfreezer = res.data.runfreezer
+    value.waiting = res.data.needfreezer
+    value.freezerId = res.data.freezerId
+    store.setValue('freezerId', res.data.freezerId)
+    store.setValue('disabled', res.data.disabled)
+    echartsInit()
+  })
 }
+
 const echartsInit = () => {
-  echarts.init(document.getElementById('shelves') as HTMLElement).dispose()
-  echarts.init(document.getElementById('sold') as HTMLElement).dispose()
-  echarts.init(document.getElementById('pie') as HTMLElement).dispose()
-  var shelvesChartDom = document.getElementById('shelves')
-  var shelvesChart = echarts.init(shelvesChartDom as HTMLElement)
+  if (!store.freezer[0]) {
+    return
+  }
+  if (shelvesChart != undefined) {
+    shelvesChart.dispose()
+    soldChart.dispose()
+    pieChart.dispose()
+  }
   var shelvesOption = {
     title: {
       left: 'center',
@@ -168,8 +185,6 @@ const echartsInit = () => {
       show: true,
     },
   }
-  var soldChartDom = document.getElementById('sold')
-  var soldChart = echarts.init(soldChartDom as HTMLElement)
   var soldOption = {
     title: {
       left: 'center',
@@ -195,8 +210,6 @@ const echartsInit = () => {
       show: true,
     },
   }
-  var pieChartDom = document.getElementById('pie')
-  var pieChart = echarts.init(pieChartDom as HTMLElement)
   var pieOption = {
     title: {
       text: '销售数量比',
@@ -226,41 +239,54 @@ const echartsInit = () => {
         },
       },
     ],
+    graphic: [
+      {
+        type: 'text',
+        left: 'center',
+        top: 'middle',
+        z: 999,
+        silent: true,
+        invisible: true,
+        style: {
+          fill: '#9d9d9d',
+          fontWeight: 'bold',
+          text: '暂无数据',
+          fontSize: '25px',
+        },
+      },
+    ],
   }
   if (value.freezerId.length != 0)
-    request
-      .post<{ data: RServerData }, RServerData>(
-        '/shelvesLog/monthsCharts',
-        value.freezerId
+    request.post('/shelvesLog/homeinfo', value.freezerId).then((res) => {
+      shelvesOption.series[0].data = res.data.monthsCharts[0]
+      value.totalshelves = res.data.monthsCharts[0].reduce(
+        (acc: number, cur: number) => acc + cur,
+        0
       )
-      .then((res) => {
-        shelvesOption.series[0].data = res.data[0]
-        value.totalshelves = res.data[0].reduce(
-          (acc: number, cur: number) => acc + cur,
-          0
-        )
-        soldOption.series[0].data = res.data[1]
-        value.totalsold = res.data[1].reduce(
-          (acc: number, cur: number) => acc + cur,
-          0
-        )
-        shelvesOption && shelvesChart.setOption(shelvesOption)
-        soldOption && soldChart.setOption(soldOption)
-      })
-  request
-    .post<{ data: RServerData }, RServerData>(
-      '/shelvesLog/soldCharts',
-      value.freezerId
-    )
-    .then((res) => {
-      pieOption.series[0].data = res.data[0].map(
+      if (value.totalshelves === 0) {
+        pieOption.graphic[0].invisible = false
+      }
+      soldOption.series[0].data = res.data.monthsCharts[1]
+      value.totalsold = res.data.monthsCharts[1].reduce(
+        (acc: number, cur: number) => acc + cur,
+        0
+      )
+      pieOption.series[0].data = res.data.soldCharts[0].map(
         (item: string, index: number) => ({
           name: item,
-          value: res.data[1][index],
+          value: res.data.soldCharts[1][index],
         })
       )
-      user.goods = res.data[0]
+      user.goods = res.data.soldCharts[0]
+      store.setValue('shelves', res.data.shelves)
+      shelvesChart = echarts.init(
+        document.getElementById('shelves') as HTMLElement
+      )
+      soldChart = echarts.init(document.getElementById('sold') as HTMLElement)
+      pieChart = echarts.init(document.getElementById('pie') as HTMLElement)
       pieOption && pieChart.setOption(pieOption)
+      shelvesOption && shelvesChart.setOption(shelvesOption)
+      soldOption && soldChart.setOption(soldOption)
     })
 }
 </script>
@@ -275,17 +301,14 @@ const echartsInit = () => {
   font-size: 12px;
   color: #999;
 }
-
 .bottom {
   margin-top: 13px;
   line-height: 12px;
 }
-
 .image {
   width: 100%;
   display: block;
 }
-
 .charts {
   width: 100%;
   height: 100%;
@@ -293,5 +316,18 @@ const echartsInit = () => {
   padding-top: 30px;
   border-radius: 5px;
   box-shadow: 2px 2px 5px #999;
+}
+.tip {
+  width: 100%;
+  height: 50%;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px #999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: xx-large;
+}
+.router-link-active {
+  text-decoration: none;
 }
 </style>

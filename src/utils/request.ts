@@ -39,16 +39,20 @@ request.interceptors.response.use(
     if (typeof res === 'string') {
       res = res ? JSON.parse(res) : res
     }
-    if (res.code && res.code != 200) {
-      ElMessage.error(res.msg)
-      if (res.code >= 1003 && res.code <= 1006) {
-        await router.push('/')
+    if (res.code) {
+      res.code = Number(res.code)
+      if (res.code != 200) {
+        ElMessage.error(res.msg)
+        if (res.code >= 1003 && res.code <= 1006) {
+          await router.push('/login')
+          location.reload()
+        }
       }
     }
     return res
   },
   (error) => {
-    console.log('err' + error) // for debug
+    // console.log('err' + error) // for debug
     return Promise.reject(error)
   }
 )

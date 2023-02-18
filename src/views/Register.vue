@@ -86,7 +86,6 @@ import {
 import { useRouter } from 'vue-router'
 import { setRotes } from '../router'
 import { useStore } from '../store/store'
-import global from '../types/interface'
 
 const user = reactive({
   userName: '',
@@ -95,10 +94,8 @@ const user = reactive({
 })
 const store = useStore()
 const router = useRouter()
-
 const ruleFormRef = ref<FormInstance>()
-
-const validatePass = (rule: any, value: any, callback: any) => {
+const validatePass = (_rule: any, value: any, callback: any) => {
   if (value === '') {
     callback(new Error('请输入密码！'))
   } else {
@@ -109,7 +106,7 @@ const validatePass = (rule: any, value: any, callback: any) => {
     callback()
   }
 }
-const validatePass2 = (rule: any, value: any, callback: any) => {
+const validatePass2 = (_rule: any, value: any, callback: any) => {
   if (value === '') {
     callback(new Error('请再次输入密码！'))
   } else if (value !== user.password) {
@@ -118,7 +115,6 @@ const validatePass2 = (rule: any, value: any, callback: any) => {
     callback()
   }
 }
-
 const rules = reactive<FormRules>({
   userName: [
     { required: true, message: '请输入用户名', trigger: 'blur' },
@@ -138,21 +134,17 @@ const register = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request
-        .post<{ data: global.RServerData }, global.RServerData>(
-          '/user/register',
-          user
-        )
-        .then((res) => {
-          if (res.code === 200) {
-            ElMessage.success('注册成功')
-            store.user = res.data
-            setRotes()
-            router.push('/manage/home')
-          } else {
-            ElMessage.error(res.msg)
-          }
-        })
+      request.post('/user/register', user).then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('注册成功')
+          store.user = res.data
+          setTimeout(() => {
+            setRotes().then(() => {
+              router.push('/manage/home')
+            })
+          }, 500)
+        }
+      })
     }
   })
 }
@@ -175,7 +167,6 @@ const register = async (formEl: FormInstance | undefined) => {
   transform: scale(1.2);
   opacity: 0.8;
 }
-
 .el-form-button :deep() .el-form-item__content {
   text-align: right;
   display: block;

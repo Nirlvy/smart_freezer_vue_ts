@@ -11,7 +11,8 @@
         </el-aside>
       </el-container>
 
-      <el-container style="width: 100%">
+      <el-container class="main">
+        <Breadcrumb />
         <el-main>
           <router-view />
         </el-main>
@@ -23,6 +24,7 @@
 <script lang="ts" setup>
 import Aside from './Aside.vue'
 import Header from './Header.vue'
+import Breadcrumb from './Breadcrumb.vue'
 </script>
 
 <style scoped>
@@ -30,30 +32,25 @@ import Header from './Header.vue'
   display: flex;
   align-items: stretch;
 }
-
 .layout-container .el-header {
   position: relative;
-  background-color: #263146;
-  color: white;
   padding: 0;
   margin: 0;
   font-size: 14px;
 }
-
 .layout-container .el-aside {
-  color: var(--el-text-color-primary);
-  background: #334058;
+  /* color: var(--el-text-color-primary);
+  background: white; */
   width: auto;
   flex-basis: 0;
   flex-grow: 1;
 }
-
 .layout-container .el-main {
   margin: 0;
   padding: 0;
 }
-
-body {
-  background-color: white;
+.main {
+  width: 100%;
+  flex-direction: column;
 }
 </style>

@@ -2,18 +2,6 @@
   <div class="toolbar">
     <div style="margin-left: 20px">
       <span style="font-size: large">智能冰柜管理系统</span>
-      <el-breadcrumb class="breadcrumb">
-        <el-breadcrumb-item
-          class="breadcrumb-item"
-          :to="{ path: '/manage/home' }"
-          >首页
-        </el-breadcrumb-item>
-        <template v-for="(item, index) in breadList">
-          <el-breadcrumb-item v-if="item.name" :key="index" :to="item.path">{{
-            item.name
-          }}</el-breadcrumb-item>
-        </template>
-      </el-breadcrumb>
     </div>
     <div style="display: flex">
       <el-dropdown style="width: 30px float: right">
@@ -42,17 +30,11 @@
 <script lang="ts" setup>
 import { Setting } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useStore } from '../store/store'
 
-const route = useRoute()
 const router = useRouter()
 const store = useStore()
-const breadList = ref(route.matched)
-watch(route, () => {
-  breadList.value = route.matched
-})
 const user = store.user
 
 const logout = () => {
@@ -68,18 +50,6 @@ const logout = () => {
   align-items: center;
   justify-content: space-between;
   height: 100%;
-}
-.breadcrumb {
-  display: inline-block;
-  margin-left: 20px;
-  font-size: 16px;
-}
-.breadcrumb-item :deep() .el-breadcrumb__inner {
-  color: white;
-  font-weight: 400;
-}
-.breadcrumb-item:hover :deep() .el-breadcrumb__inner {
-  color: #388ae6;
 }
 .avatar {
   margin-right: 10px;

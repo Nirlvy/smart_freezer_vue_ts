@@ -35,7 +35,7 @@ export const setRotes = () => {
         children: [
           {
             path: 'home',
-            component: () => import('../views/Home.vue'),
+            component: () => import('../views/Home/index.vue'),
           },
           {
             path: 'person',

@@ -1,8 +1,6 @@
 <template>
   <el-scrollbar style="height: auto">
     <el-menu
-      background-color="#334058"
-      text-color="#B5C0D0"
       unique-opened
       :collapse="isCollapse"
       router
@@ -107,7 +105,6 @@ onBeforeRouteUpdate((to, _from, next) => {
 .layout-container .el-menu {
   border-right: none;
 }
-
 span {
   padding-left: 10px;
   padding-right: 20px;

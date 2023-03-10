@@ -44,42 +44,34 @@ export const setRotes = () => {
           },
         ],
       }
-
-      const user = JSON.parse(main).user
-      if (Object.keys(user).length === 0) {
+      const jwt = JSON.parse(main).Jwt
+      if (Object.keys(jwt).length === 0) {
         return
       }
-      if (user.menus.includes(3)) {
-        const itemMenu = {
-          path: 'freezer',
-          name: '设备管理',
-          component: () => import('../views/Freezer.vue'),
-        }
-        manageRoutes.children.push(itemMenu)
-      }
-      if (user.menus.includes(4)) {
-        const itemMenu = {
-          path: 'goods',
-          name: '商品管理',
-          component: () => import('../views/Goods.vue'),
-        }
-        manageRoutes.children.push(itemMenu)
-      }
-      if (user.menus.includes(5)) {
-        const itemMenu = {
-          path: 'role',
-          name: '管理控制',
-          component: () => import('../views/Role.vue'),
-        }
-        manageRoutes.children.push(itemMenu)
-      }
-      if (user.menus.includes(7)) {
-        const itemMenu = {
-          path: 'user',
-          name: '用户记录',
-          component: () => import('../views/User.vue'),
-        }
-        manageRoutes.children.push(itemMenu)
+      if (jwt.enabled === true) {
+        const itemMenu = [
+          {
+            path: 'freezer',
+            name: '设备管理',
+            component: () => import('../views/Freezer.vue'),
+          },
+          {
+            path: 'goods',
+            name: '商品管理',
+            component: () => import('../views/Goods.vue'),
+          },
+          {
+            path: 'role',
+            name: '管理控制',
+            component: () => import('../views/Role.vue'),
+          },
+          {
+            path: 'user',
+            name: '用户记录',
+            component: () => import('../views/User.vue'),
+          },
+        ]
+        manageRoutes.children = manageRoutes.children.concat(itemMenu)
       }
       router.addRoute(manageRoutes)
     }

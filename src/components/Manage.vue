@@ -39,8 +39,6 @@ import Breadcrumb from './Breadcrumb.vue'
   font-size: 14px;
 }
 .layout-container .el-aside {
-  /* color: var(--el-text-color-primary);
-  background: white; */
   width: auto;
   flex-basis: 0;
   flex-grow: 1;
@@ -48,6 +46,7 @@ import Breadcrumb from './Breadcrumb.vue'
 .layout-container .el-main {
   margin: 0;
   padding: 0;
+  overflow-y: hidden;
 }
 .main {
   width: 100%;

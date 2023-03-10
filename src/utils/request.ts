@@ -1,24 +1,23 @@
+import { router } from '@/router'
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
-import { useStore } from '../store/store'
-import { router } from '../router/index'
+import { useMainStore } from '../store/store'
 
-const store = useStore()
+const store = useMainStore()
 const url = store.ServerIp
 
 const request = axios.create({
-  baseURL: url, // 注意！！ 这里是全局统一加上了 '/api' 前缀，也就是说所有接口都会加上'/api'前缀在，页面里面写接口的时候就不要加 '/api'了，否则会出现2个'/api'，类似 '/api/api/user'这样的报错，切记！！！
+  baseURL: url,
   timeout: 5000,
 })
 
-// request 拦截器
-// 可以自请求发送前对请求做一些处理
-// 比如统一加token，对请求参数统一加密
 request.interceptors.request.use(
   (config) => {
-    ;(config as any).headers['Content-Type'] = 'application/json;charset=utf-8'
-    const user = store.user
-    if (user) (config as any).headers['token'] = user.token // 设置请求头
+    config.headers['Content-Type'] = 'application/json;charset=utf-8'
+    const login = store.Login
+    if (login) {
+      config.headers['X-Authorization'] = 'Bearer ' + login.token
+    }
     return config
   },
   (error) => {
@@ -26,33 +25,28 @@ request.interceptors.request.use(
   }
 )
 
-// response 拦截器
-// 可以在接口响应后统一处理结果
 request.interceptors.response.use(
   async (response) => {
-    let res = response.data
-    // 如果是返回的文件
     if (response.config.responseType === 'blob') {
-      return res
+      return response
     }
-    // 兼容服务端返回的字符串数据
-    if (typeof res === 'string') {
-      res = res ? JSON.parse(res) : res
+    if (typeof response.data === 'string') {
+      response.data = response.data ? JSON.parse(response.data) : response.data
     }
-    if (res.code) {
-      res.code = Number(res.code)
-      if (res.code != 200) {
-        ElMessage.error(res.msg)
-        if (res.code >= 1003 && res.code <= 1006) {
-          await router.push('/login')
-          location.reload()
-        }
+    if (response.data.status) {
+      response.data.status = Number(response.data.status)
+      if (response.data.status != 200) {
+        ElMessage.error(response.data.message)
       }
     }
-    return res
+    return response
   },
-  (error) => {
-    // console.log('err' + error) // for debug
+  async (error) => {
+    if (error.response.data.status) {
+      ElMessage.error(error.response.data.message)
+      await router.push('/login')
+      location.reload()
+    }
     return Promise.reject(error)
   }
 )

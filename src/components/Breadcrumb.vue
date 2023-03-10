@@ -25,7 +25,6 @@ watch(route, () => {
 <style scoped>
 .breadcrumb {
   background-color: #f3f5f6;
-  font-size: 14px;
   padding: 10px;
 }
 </style>

@@ -1,14 +1,5 @@
 <template>
-  <el-card class="echartCard">
-    <div class="echartCardtitle">
-      <div class="card-title">上架趋势</div>
-      <el-button-group>
-        <el-button type="primary" plain>本月</el-button>
-        <el-button>本年</el-button>
-      </el-button-group>
-    </div>
-    <div id="bchart" class="echarts" />
-  </el-card>
+  <div id="lchart" class="echarts" />
 </template>
 
 <script setup lang="ts">
@@ -34,21 +25,23 @@ const initEcharts = () => {
   if (chart != undefined) {
     chart.dispose()
   }
-  chartDom = document.getElementById('bchart') as HTMLCanvasElement
+  chartDom = document.getElementById('lchart') as HTMLCanvasElement
   chart = echarts.init(chartDom)
   option = {
     grid: {
-      left: '40px',
-      right: '10px',
-      top: '20px',
-      bottom: '20px',
+      left: '3px',
+      right: '3px',
+      top: '0',
+      bottom: '0',
     },
     xAxis: {
+      show: false,
       type: 'category',
       boundaryGap: false,
       data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
     },
     yAxis: {
+      show: false,
       type: 'value',
     },
     series: [
@@ -64,7 +57,7 @@ const initEcharts = () => {
 </script>
 
 <style scoped>
-.echartCard .echarts {
-  flex: 1;
+.echarts {
+  height: 100%;
 }
 </style>

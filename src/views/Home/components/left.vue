@@ -28,7 +28,7 @@
       <el-card>
         <div class="card-title">月上架数</div>
         <div class="card-value">{{ cardValue.monthUp }}</div>
-        <div class="card-chart" />
+        <div class="card-chart"><lchart /></div>
         <el-divider />
         <div class="card-text">
           <div>
@@ -42,7 +42,7 @@
       <el-card>
         <div class="card-title">售出率</div>
         <div class="card-value">{{ cardValue.soldRate }}%</div>
-        <div class="card-chart" />
+        <div class="card-chart"><lchart2 /></div>
         <el-divider />
         <div class="card-text">
           <div>
@@ -54,9 +54,9 @@
     </el-col>
     <el-col :span="6">
       <el-card>
-        <div class="card-title">月目标数</div>
+        <div class="card-title">计划完成度</div>
         <div class="card-value">{{ cardValue.monthTarget }}</div>
-        <div class="card-chart" />
+        <div class="card-chart"><lchart3 /></div>
         <el-divider />
         <div class="card-text">
           <div>
@@ -88,13 +88,22 @@
       <bchart2 />
     </el-col>
   </el-row>
+  <el-row class="row echartsRow">
+    <el-col :span="24">
+      <bchart3 />
+    </el-col>
+  </el-row>
 </template>
 
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { Cpu } from '@element-plus/icons-vue'
+import lchart from './lchart.vue'
+import lchart2 from './lchart2.vue'
+import lchart3 from './lchart3.vue'
 import bchart from './bchart.vue'
 import bchart2 from './bchart2.vue'
+import bchart3 from './bchart3.vue'
 
 const cardValue = reactive({
   monthSold: 0,
@@ -112,7 +121,7 @@ const cardValue = reactive({
 
 <style scoped>
 .card-chart {
-  height: 40.8px;
+  height: 80.8px;
 }
 .shortCutLine {
   padding: 5px;
@@ -125,10 +134,10 @@ const cardValue = reactive({
   text-align: center;
 }
 .echartsRow {
-  height: 35%;
+  height: 35vh;
 }
 .blank {
-  height: 20px;
+  height: 60px;
 }
 </style>
 

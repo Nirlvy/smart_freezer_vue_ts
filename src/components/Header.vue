@@ -19,10 +19,8 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <img v-if="user.img != null" class="avatar" :src="user.img" />
-      <span style="margin-right: 20px; line-height: 30px">{{
-        user.userName
-      }}</span>
+      <!-- <img v-if="user.img != null" class="avatar" :src="user.img" /> -->
+      <span style="margin-right: 20px; line-height: 30px">{{ Jwt.sub }}</span>
     </div>
   </div>
 </template>
@@ -31,11 +29,11 @@
 import { Setting } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { useStore } from '../store/store'
+import { useMainStore } from '../store/store'
 
 const router = useRouter()
-const store = useStore()
-const user = store.user
+const store = useMainStore()
+const Jwt = store.Jwt
 
 const logout = () => {
   store.$reset()

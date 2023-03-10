@@ -1,17 +1,17 @@
 <template>
   <div
     class="windows"
-    :class="{ focus: store.blur }"
-    @mouseenter="store.blur = true"
-    @mouseleave="store.blur = false"
+    :class="{ focus: MianStore.Blur }"
+    @mouseenter="MianStore.Blur = true"
+    @mouseleave="MianStore.Blur = false"
   >
     <div style="margin: 20px 0; text-align: center; font-size: 24px">
       <b>智能冰柜管理系统</b>
     </div>
     <el-form ref="ruleFormRef" :model="user" :rules="rules">
-      <el-form-item prop="userName">
+      <el-form-item prop="username">
         <el-input
-          v-model="user.userName"
+          v-model="user.username"
           size="large"
           style="margin: 10px 0"
           :prefix-icon="UserFilled"
@@ -61,18 +61,19 @@ import request from '../utils/request'
 import { ElMessage, FormInstance, FormRules } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { setRotes } from '../router'
-import { useStore } from '../store/store'
+import jwt_decode from 'jwt-decode'
+import { useMainStore } from '@/store/store'
 
 const user = reactive({
-  userName: '',
+  username: '',
   password: '',
 })
-const store = useStore()
+const MianStore = useMainStore()
 const router = useRouter()
 const rules = reactive<FormRules>({
   userName: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 1, max: 20, message: '长度应该为1到20位', trigger: 'blur' },
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
+    { min: 1, max: 30, message: '长度应该为1到30位', trigger: 'blur' },
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -85,18 +86,18 @@ const login = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request.post('/user/login', user).then((res) => {
-        if (res.code === 200) {
-          const userinfo = { ...res.data }
-          delete userinfo.password
-          store.user = userinfo
-          setTimeout(() => {
-            setRotes().then(() => {
-              router.push('/manage/home')
-              ElMessage.success('登录成功')
-            })
-          }, 500)
+      request.post<LoginData & E>('/auth/login', user).then((res) => {
+        if (res.data.status) {
+          return
         }
+        MianStore.Login = res.data
+        MianStore.Jwt = jwt_decode(res.data.token)
+        setTimeout(() => {
+          setRotes().then(() => {
+            router.push('/manage/home')
+            ElMessage.success('登录成功')
+          })
+        }, 500)
       })
     }
   })

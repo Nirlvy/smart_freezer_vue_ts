@@ -3,7 +3,7 @@
     <div class="echartCardtitle">
       <div class="card-title">销量类别占比</div>
       <el-button-group>
-        <el-button type="primary">本月</el-button>
+        <el-button type="primary" plain>本月</el-button>
         <el-button>本年</el-button>
       </el-button-group>
     </div>
@@ -13,19 +13,28 @@
 
 <script setup lang="ts">
 import * as echarts from 'echarts'
-import { onMounted } from 'vue'
+import { onBeforeUnmount, onMounted } from 'vue'
 
 type EChartsOption = echarts.EChartsOption
 
 var chart: echarts.ECharts
 var option: EChartsOption
+var chartDom: HTMLCanvasElement
 
 onMounted(() => {
+  window.addEventListener('resize', initEcharts)
   initEcharts()
 })
 
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', initEcharts)
+})
+
 const initEcharts = () => {
-  var chartDom = document.getElementById('bchart2') as HTMLCanvasElement
+  if (chart != undefined) {
+    chart.dispose()
+  }
+  chartDom = document.getElementById('bchart2') as HTMLCanvasElement
   chart = echarts.init(chartDom)
   option = {
     grid: {

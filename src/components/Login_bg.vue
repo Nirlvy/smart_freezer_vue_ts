@@ -1,14 +1,14 @@
 <template>
   <div class="wrapper">
-    <div class="wrapper-overlay" :class="{ focus: store.blur }" />
+    <div class="wrapper-overlay" :class="{ focus: store.Blur }" />
     <router-view />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '../store/store'
+import { useMainStore } from '../store/store'
 
-const store = useStore()
+const store = useMainStore()
 
 const load = () => {
   store.$reset

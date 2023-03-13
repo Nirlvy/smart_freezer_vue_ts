@@ -53,7 +53,7 @@ export const setRotes = () => {
           {
             path: 'freezer',
             name: '设备管理',
-            component: () => import('../views/Freezer.vue'),
+            component: () => import('../views/Freezer/index.vue'),
           },
           {
             path: 'goods',

@@ -1,4 +1,4 @@
-<script lang="ts" setup></script>
+<script lang="ts"></script>
 
 <template>
   <main>
@@ -6,8 +6,4 @@
   </main>
 </template>
 
-<style scoped>
-body {
-  background-color: white;
-}
-</style>
+<style scoped></style>

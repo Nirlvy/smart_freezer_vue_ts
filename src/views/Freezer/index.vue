@@ -1,5 +1,27 @@
 <template>
   <div class="bg">
+    <div class="top"><Top /></div>
+    <div class="bottom"><Bottom /></div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import Top from './components/Top.vue'
+import Bottom from './components/Bottom.vue'
+</script>
+
+<style scoped>
+.bg {
+  display: flex;
+  flex-direction: column;
+}
+.top {
+  margin-bottom: 10px;
+}
+</style>
+
+<!-- <template>
+  <div class="bg">
     <div class="left" :class="{ click: lineClick }">
       <el-table :data="tableData" @row-click="handleRowClick">
         <el-table-column prop="id" label="ID" width="40px" />
@@ -199,9 +221,9 @@ import {
   ShoppingTrolley,
   User,
 } from '@element-plus/icons-vue'
-import request from '../utils/request'
+import request from '@/utils/request'
 import * as echarts from 'echarts'
-import { useStore } from '../store/store'
+import { useMainStore } from '@/store/store'
 import { shallowRef } from 'vue'
 import AMapLoader from '@amap/amap-jsapi-loader'
 import {
@@ -215,7 +237,7 @@ import {
   ElDrawer,
   ElMessage,
 } from 'element-plus'
-const store = useStore()
+const store = useMainStore()
 const tableData = ref()
 const lineClick = ref(false)
 const user = store.user
@@ -731,4 +753,4 @@ const handleNew = () => {
   width: 50%;
   min-width: 180px;
 }
-</style>
+</style> -->

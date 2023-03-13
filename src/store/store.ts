@@ -17,13 +17,35 @@ export const useMainStore = defineStore('main', {
 
 export const useFreezerStore = defineStore('freezer', {
   state: () => ({
-    cardValue: {
-      total: 0,
-      online: 0,
-      release: 0,
-      enable: 0,
-      warn: 0,
-      pure: 0,
-    } as CardValue,
+    cardValue: [
+      {
+        name: '全部设备',
+        value: 0,
+      },
+      {
+        name: '在线设备',
+        value: 0,
+      },
+      {
+        name: '投放设备',
+        value: 0,
+      },
+      {
+        name: '启用设备',
+        value: 0,
+      },
+      {
+        name: '设备告警率',
+        value: 0,
+      },
+      {
+        name: '纯净度',
+        value: 0,
+      },
+    ] as CardValue,
   }),
+  persist: {
+    enabled: true,
+    strategies: [{ paths: ['cardValue'] }],
+  },
 })

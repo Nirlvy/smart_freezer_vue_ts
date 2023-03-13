@@ -7,12 +7,12 @@
           <el-icon :size="52" color="#FE7179">
             <Refrigerator />
           </el-icon>
-          <div class="card-text">{{ inforList[0].name }}</div>
-          <div class="card-text">{{ inforList[0].value }}</div>
+          <div class="card-text">{{ FreezerStore.cardValue[0].name }}</div>
+          <div class="card-text">{{ FreezerStore.cardValue[0].value }}</div>
         </div>
       </el-col>
       <el-col
-        v-for="(item, index) in inforList.slice(1)"
+        v-for="(item, index) in FreezerStore.cardValue.slice(1)"
         :key="index"
         :span="8"
       >
@@ -20,8 +20,10 @@
           <el-progress
             type="circle"
             :percentage="
-              Math.floor((item.value * 100) / FreezerStore.cardValue.total)
-                ? Math.floor((item.value * 100) / FreezerStore.cardValue.total)
+              Math.floor((item.value * 100) / FreezerStore.cardValue[0].value)
+                ? Math.floor(
+                    (item.value * 100) / FreezerStore.cardValue[0].value
+                  )
                 : 0
             "
             :width="52"
@@ -66,38 +68,13 @@ import {
   ArrowRightBold,
   Refrigerator,
 } from '@element-plus/icons-vue'
-import { ref, computed, markRaw, reactive } from 'vue'
+import { ref, markRaw, reactive } from 'vue'
+// import { requestPage } from '@/utils/commonRequset'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
 // const deviceInfos = ref<deviceInfos>()
 const entitiesQuery = ref<entitiesQueryFind>()
-const inforList = computed(() => [
-  {
-    name: '设备总数',
-    value: FreezerStore.cardValue.total,
-  },
-  {
-    name: '在线设备',
-    value: FreezerStore.cardValue.online,
-  },
-  {
-    name: '投放设备',
-    value: FreezerStore.cardValue.release,
-  },
-  {
-    name: '启用设备',
-    value: FreezerStore.cardValue.enable,
-  },
-  {
-    name: '设备告警率',
-    value: FreezerStore.cardValue.warn,
-  },
-  {
-    name: '纯净率',
-    value: FreezerStore.cardValue.pure,
-  },
-])
 const centerList = reactive([
   { name: '仓库代办', value: 0 },
   { name: '生产代办', value: 0 },
@@ -243,17 +220,18 @@ const WebSocketAPI = () => {
   }
   webSocket.onmessage = function (event) {
     var received_msg = JSON.parse(event.data)
+    console.log(received_msg)
     switch (received_msg.cmdId) {
       case 1:
-        FreezerStore.cardValue.online = received_msg.count
+        FreezerStore.cardValue[1].value = received_msg.count
         break
       case 2:
-        FreezerStore.cardValue.total =
-          FreezerStore.cardValue.online + received_msg.count
+        FreezerStore.cardValue[0].value =
+          FreezerStore.cardValue[1].value + received_msg.count
         break
       case 3:
-        FreezerStore.cardValue.enable =
-          FreezerStore.cardValue.total - received_msg.count
+        FreezerStore.cardValue[3].value =
+          FreezerStore.cardValue[0].value - received_msg.count
         break
     }
   }
@@ -269,15 +247,12 @@ const init = () => {
     }
     MainStore.User = res.data
   })
-  // request
-  //   .get<deviceInfos & E>('/tenant/deviceInfos?pageSize=2147483647&page=0')
-  //   .then((res) => {
-  //     if (res.data.status) {
-  //       return
-  //     }
-  //     deviceInfos.value = res.data
-  //     FreezerStore.cardValue.total = res.data.totalElements
-  //   })
+  // requestPage(21474483647, 0).then((res) => {
+  //   if (res) {
+  //     deviceInfos.value = res
+  //     FreezerStore.cardValue.total = res.totalElements
+  //   }
+  // })
   request
     .post<entitiesQueryFind & E>('/entitiesQuery/find', findPara)
     .then((res) => {
@@ -285,7 +260,7 @@ const init = () => {
         return
       }
       entitiesQuery.value = res.data
-      FreezerStore.cardValue.release = res.data.totalElements
+      FreezerStore.cardValue[2].value = res.data.totalElements
       // entitiesQuery.value.data.forEach((item, index) => {
       //   request.get<deviceInfo>('/device/info/' + item[index].entityId.id)
       // })

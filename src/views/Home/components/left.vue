@@ -142,11 +142,6 @@ const cardValue = reactive({
 </style>
 
 <style>
-.el-card__body {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
 .echartCard {
   height: 100%;
 }

@@ -12,6 +12,8 @@ import { router } from './router/index.js'
 import { createPinia } from 'pinia'
 import piniaPersist from 'pinia-plugin-persist'
 
+import 'virtual:svg-icons-register'
+
 const pinia = createPinia()
 const app = createApp(App)
 

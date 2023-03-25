@@ -14,10 +14,12 @@ import Bottom from './components/Bottom.vue'
 
 <style scoped>
 .bg {
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 .top {
+  height: 43vh;
   margin-bottom: 10px;
 }
 </style>

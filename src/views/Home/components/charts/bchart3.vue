@@ -2,14 +2,10 @@
   <el-card class="echartCard">
     <div class="echartCardtitle">
       <div class="card-title">销量趋势</div>
-      <el-button-group>
-        <el-button :type="type1" :plain="plain1" @click="button1">
-          本月
-        </el-button>
-        <el-button :type="type2" :plain="plain2" @click="button2">
-          本年
-        </el-button>
-      </el-button-group>
+      <el-radio-group v-model="buttonGroup">
+        <el-radio-button label="本月" @click="button1" />
+        <el-radio-button label="本年" @click="button2" />
+      </el-radio-group>
     </div>
     <div id="bchart3" class="echarts" />
   </el-card>
@@ -24,10 +20,7 @@ type EChartsOption = echarts.EChartsOption
 var chart: echarts.ECharts
 var option: EChartsOption
 var chartDom: HTMLCanvasElement
-const type1 = ref('primary')
-const type2 = ref('')
-const plain1 = ref(true)
-const plain2 = ref(false)
+const buttonGroup = ref('本月')
 
 onMounted(() => {
   window.addEventListener('resize', initEcharts)
@@ -71,25 +64,13 @@ const initEcharts = () => {
 }
 
 const button1 = () => {
-  if (type1.value === '') {
-    type1.value = 'primary'
-    type2.value = ''
-    plain1.value = true
-    plain2.value = false
-    option.series = [{ data: [820, 932, 901, 934, 1290, 1330, 1320] }]
-    option && chart.setOption(option)
-  }
+  option.series = [{ data: [820, 932, 901, 934, 1290, 1330, 1320] }]
+  option && chart.setOption(option)
 }
 
 const button2 = () => {
-  if (type2.value === '') {
-    type1.value = ''
-    type2.value = 'primary'
-    plain1.value = false
-    plain2.value = true
-    option.series = [{ data: [1, 2, 3, 4, 5, 6, 7] }]
-    option && chart.setOption(option)
-  }
+  option.series = [{ data: [1, 2, 3, 4, 5, 6, 7] }]
+  option && chart.setOption(option)
 }
 </script>
 

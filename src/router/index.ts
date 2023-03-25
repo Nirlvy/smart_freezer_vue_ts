@@ -58,7 +58,7 @@ export const setRotes = () => {
           {
             path: 'goods',
             name: '商品管理',
-            component: () => import('../views/Goods.vue'),
+            component: () => import('../views/Goods/index.vue'),
           },
           {
             path: 'role',

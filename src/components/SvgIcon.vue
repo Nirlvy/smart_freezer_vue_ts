@@ -22,6 +22,10 @@ export default defineComponent({
       type: String,
       default: '#333',
     },
+    verticalAlign: {
+      type: String,
+      default: 'middle',
+    },
   },
   setup(props) {
     const symbolId = computed(() => `#${props.prefix}-${props.name}`)

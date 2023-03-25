@@ -98,12 +98,12 @@
 <script setup lang="ts">
 import { reactive } from 'vue'
 import { Cpu } from '@element-plus/icons-vue'
-import lchart from './lchart.vue'
-import lchart2 from './lchart2.vue'
-import lchart3 from './lchart3.vue'
-import bchart from './bchart.vue'
-import bchart2 from './bchart2.vue'
-import bchart3 from './bchart3.vue'
+import lchart from './charts/lchart.vue'
+import lchart2 from './charts/lchart2.vue'
+import lchart3 from './charts/lchart3.vue'
+import bchart from './charts/bchart.vue'
+import bchart2 from './charts/bchart2.vue'
+import bchart3 from './charts/bchart3.vue'
 
 const cardValue = reactive({
   monthSold: 0,

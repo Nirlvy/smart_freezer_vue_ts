@@ -1,12 +1,8 @@
 <template>
   <el-breadcrumb class="breadcrumb">
-    <el-breadcrumb-item class="breadcrumb-item" :to="{ path: '/manage/home' }">
-      首页
-    </el-breadcrumb-item>
+    <el-breadcrumb-item class="breadcrumb-item" :to="{ path: '/manage/home' }"> 首页 </el-breadcrumb-item>
     <template v-for="(item, index) in breadList">
-      <el-breadcrumb-item v-if="item.name" :key="index" :to="item.path">{{
-        item.name
-      }}</el-breadcrumb-item>
+      <el-breadcrumb-item v-if="item.name" :key="index" :to="item.path">{{ item.name }}</el-breadcrumb-item>
     </template>
   </el-breadcrumb>
 </template>

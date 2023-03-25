@@ -11,12 +11,7 @@
       @clear="load"
       @change="load"
     >
-      <el-option
-        v-for="item in freezer"
-        :key="item.freezerId"
-        :label="item.freezerId"
-        :value="item.freezerId"
-      />
+      <el-option v-for="item in freezer" :key="item.freezerId" :label="item.freezerId" :value="item.freezerId" />
     </el-select>
     <el-select
       v-model="input.name"
@@ -29,27 +24,10 @@
       @clear="load"
       @change="load"
     >
-      <el-option
-        v-for="item in user.goods"
-        :key="item"
-        :label="item"
-        :value="item"
-      />
+      <el-option v-for="item in user.goods" :key="item" :label="item" :value="item" />
     </el-select>
-    <el-select
-      v-model="input.state"
-      class="ml-10 input"
-      placeholder="状态"
-      clearable
-      @clear="load"
-      @change="load"
-    >
-      <el-option
-        v-for="item in states"
-        :key="item.value"
-        :label="item.label"
-        :value="item.value"
-      />
+    <el-select v-model="input.state" class="ml-10 input" placeholder="状态" clearable @clear="load" @change="load">
+      <el-option v-for="item in states" :key="item.value" :label="item.label" :value="item.value" />
     </el-select>
     <el-date-picker
       v-model="input.upDate"
@@ -74,55 +52,24 @@
     <el-button class="ml-10" :icon="Search" @click="clear()">清除</el-button>
   </div>
   <div style="padding: 10px 10px">
-    <el-button
-      v-if="freezer.length != 0"
-      type="primary"
-      :icon="Plus"
-      @click="upButtonClick"
-    >
-      新增
-    </el-button>
-    <el-popconfirm
-      title="确定批量删除?"
-      width="200"
-      cancel-button-text="我再想想"
-      @confirm="batchDelete"
-    >
+    <el-button v-if="freezer.length != 0" type="primary" :icon="Plus" @click="upButtonClick"> 新增 </el-button>
+    <el-popconfirm title="确定批量删除?" width="200" cancel-button-text="我再想想" @confirm="batchDelete">
       <template #reference>
         <el-button type="danger" :icon="DocumentDelete">批量删除</el-button>
       </template>
     </el-popconfirm>
-    <el-button type="primary" class="ml-10" :icon="DocumentCopy" @click="exp()">
-      导出
-    </el-button>
+    <el-button type="primary" class="ml-10" :icon="DocumentCopy" @click="exp()"> 导出 </el-button>
   </div>
   <el-dialog v-model="upDialog" title="新上架" width="400px">
     <el-form ref="ruleFormRef" :model="upForm" :rules="upRules" status-icon>
       <el-form-item label="冰柜" :label-width="70" prop="id">
-        <el-select
-          v-model="upForm.id"
-          placeholder="冰柜ID"
-          clearable
-          @change="inputIdChange"
-        >
-          <el-option
-            v-for="item in freezer"
-            :key="item.freezerId"
-            :label="item.freezerId"
-            :value="item.freezerId"
-            :disabled="item.disabled"
-          />
+        <el-select v-model="upForm.id" placeholder="冰柜ID" clearable @change="inputIdChange">
+          <el-option v-for="item in freezer" :key="item.freezerId" :label="item.freezerId" :value="item.freezerId" :disabled="item.disabled" />
         </el-select>
       </el-form-item>
       <el-form-item label="商品名" :label-width="70" prop="name">
         <el-select v-model="upForm.name" placeholder="商品名" clearable>
-          <el-option
-            v-for="item in upGoods"
-            :key="item.label"
-            :label="item.label"
-            :value="item.label"
-            :disabled="item.disabled"
-          />
+          <el-option v-for="item in upGoods" :key="item.label" :label="item.label" :value="item.label" :disabled="item.disabled" />
         </el-select>
       </el-form-item>
       <el-form-item label="数量" :label-width="70" prop="num">
@@ -132,17 +79,11 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="upDialog = false">取消</el-button>
-        <el-button type="primary" @click="upCrofirm(ruleFormRef)">
-          确定
-        </el-button>
+        <el-button type="primary" @click="upCrofirm(ruleFormRef)"> 确定 </el-button>
       </span>
     </template>
   </el-dialog>
-  <el-table
-    :data="tableData"
-    :row-class-name="tableRowClassName"
-    @selection-change="selection"
-  >
+  <el-table :data="tableData" :row-class-name="tableRowClassName" @selection-change="selection">
     <el-table-column type="selection" width="30" />
     <el-table-column prop="id" label="ID" min-width="30" />
     <el-table-column prop="freezerId" label="冰柜ID" min-width="50" />
@@ -163,16 +104,9 @@
     <el-table-column prop="downTime" label="下架时间" min-width="135" />
     <el-table-column label="操作" min-width="70">
       <template #default="scope">
-        <el-popconfirm
-          title="确定删除?"
-          width="200"
-          cancel-button-text="我再想想"
-          @confirm="handleDelete(scope.row)"
-        >
+        <el-popconfirm title="确定删除?" width="200" cancel-button-text="我再想想" @confirm="handleDelete(scope.row)">
           <template #reference>
-            <el-button size="small" type="danger" :icon="DocumentDelete">
-              删除
-            </el-button>
+            <el-button size="small" type="danger" :icon="DocumentDelete"> 删除 </el-button>
           </template>
         </el-popconfirm>
       </template>
@@ -193,12 +127,7 @@
 </template>
 
 <script lang="ts" setup>
-import {
-  DocumentDelete,
-  Search,
-  DocumentCopy,
-  Plus,
-} from '@element-plus/icons-vue'
+import { DocumentDelete, Search, DocumentCopy, Plus } from '@element-plus/icons-vue'
 import {
   ElButton,
   ElDatePicker,
@@ -317,10 +246,7 @@ const load = () => {
         '&downTime=' +
         input.downDate,
       {
-        freezerId:
-          Array.from(input.id) === null || Array.from(input.id).length === 0
-            ? store.getValue('freezerId')
-            : Array.from(input.id),
+        freezerId: Array.from(input.id) === null || Array.from(input.id).length === 0 ? store.getValue('freezerId') : Array.from(input.id),
         name: Array.from(input.name),
       }
     )
@@ -328,13 +254,11 @@ const load = () => {
       tableData.value = res.records
       pageData.total = res.total
     })
-  request
-    .post('/shelvesLog/homeinfo', store.getValue('freezerId'))
-    .then((res) => {
-      if (res.code === 200) {
-        user.goods = res.data.soldCharts[0]
-      }
-    })
+  request.post('/shelvesLog/homeinfo', store.getValue('freezerId')).then((res) => {
+    if (res.code === 200) {
+      user.goods = res.data.soldCharts[0]
+    }
+  })
   request.get<{ data: GServerData[] }, GServerData[]>('/goods').then((res) => {
     upGoods.value = Array.from(res).map((item) => ({
       label: item.name,
@@ -428,25 +352,14 @@ const upCrofirm = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      request
-        .post(
-          '/shelvesLog/up?id=' +
-            upForm.id +
-            '&name=' +
-            upForm.name +
-            '&num=' +
-            upForm.num
-        )
-        .then((res) => {
-          if (res.code === 200) {
-            ElMessage.success('上架成功')
-            upDialog.value = false
-            freezer[store.getIndex('freezerId', upForm.id)].shelves += Number(
-              upForm.num
-            )
-            load()
-          }
-        })
+      request.post('/shelvesLog/up?id=' + upForm.id + '&name=' + upForm.name + '&num=' + upForm.num).then((res) => {
+        if (res.code === 200) {
+          ElMessage.success('上架成功')
+          upDialog.value = false
+          freezer[store.getIndex('freezerId', upForm.id)].shelves += Number(upForm.num)
+          load()
+        }
+      })
       let time = store.getTime()
       request.post<{ data: RServerData }, RServerData>('/freezer/update', {
         id: upForm.id,
@@ -462,18 +375,16 @@ const upButtonClick = () => {
 }
 
 const exp = async () => {
-  request
-    .get('/shelvesLog/export?id=' + user.id, { responseType: 'blob' })
-    .then((res) => {
-      const blob = new Blob([res] as any)
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = '商品信息.xlsx'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-    })
+  request.get('/shelvesLog/export?id=' + user.id, { responseType: 'blob' }).then((res) => {
+    const blob = new Blob([res] as any)
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '商品信息.xlsx'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  })
 }
 </script>
 

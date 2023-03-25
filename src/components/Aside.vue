@@ -1,11 +1,6 @@
 <template>
   <el-scrollbar style="height: auto">
-    <el-menu
-      unique-opened
-      :collapse="isCollapse"
-      router
-      :default-active="curPath"
-    >
+    <el-menu unique-opened :collapse="isCollapse" router :default-active="curPath">
       <el-menu-item index="/manage/home">
         <el-icon>
           <House />
@@ -63,16 +58,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import {
-  House,
-  Refrigerator,
-  Present,
-  Box,
-  Tickets,
-  Fold,
-  Files,
-  DataAnalysis,
-} from '@element-plus/icons-vue'
+import { House, Refrigerator, Present, Box, Tickets, Fold, Files, DataAnalysis } from '@element-plus/icons-vue'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 
 const isCollapse = ref(false)

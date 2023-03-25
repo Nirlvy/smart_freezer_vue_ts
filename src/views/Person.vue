@@ -93,7 +93,7 @@ import {
 } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStore } from '../store/store'
+import { useMainStore } from '../store/store'
 import request from '../utils/request'
 
 const user = reactive({
@@ -105,11 +105,11 @@ const user = reactive({
   img: '',
 })
 const router = useRouter()
-const store = useStore()
+const store = useMainStore()
 const ruleFormRef = ref<FormInstance>()
 const ServerIp = store.ServerIp
 const uploadIp = ServerIp + '/file/upload'
-const localuser = store.user
+const localuser = store.User
 
 const load = () => {
   request

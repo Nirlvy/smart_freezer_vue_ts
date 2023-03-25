@@ -33,20 +33,8 @@
         />
       </el-form-item>
       <el-form-item class="el-form-button">
-        <el-button
-          type="primary"
-          size="large"
-          round
-          @click="login(ruleFormRef)"
-        >
-          登录
-        </el-button>
-        <el-button
-          type="success"
-          size="large"
-          round
-          @click="router.push('/register')"
-        >
+        <el-button type="primary" size="large" round @click="login(ruleFormRef)"> 登录 </el-button>
+        <el-button type="success" size="large" round @click="router.push('/register')">
           注册
         </el-button>
       </el-form-item>

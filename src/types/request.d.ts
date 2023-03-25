@@ -54,10 +54,41 @@ type deviceInfo = {
   customerTitle: null
   customerIsPublic: boolean
   deviceProfileName: string
+  SHARED_SCOPE?: sharedScope[]
 }
 
 type deviceInfos = {
   data: deviceInfo[]
+  hasNext: boolean
+  totalElements: number
+  totalPages: number
+}
+
+type complexly = {
+  id: {
+    entityType: string
+    id: string
+  }
+  tenantId: {
+    entityType: string
+    id: string
+  }
+  customerId: null
+  salesTime: number
+  sale: {
+    [key: string]: string
+  }
+  deviceId: string
+  openTime: number
+  closeTime: number
+  purchaseImage: string | null
+  displayImage: string | null
+  purity: null
+  productName?: string
+}
+
+type complexlyPage = {
+  data: complexly[]
   hasNext: boolean
   totalElements: number
   totalPages: number
@@ -75,4 +106,45 @@ type entitiesQueryFind = {
   hasNext: boolean
   totalElements: number
   totalPages: number
+}
+
+type sortProperty = {
+  createdTime
+  customerTitle
+  deviceProfileName
+  label
+  name
+  closeTime
+  openTime
+  salesTime
+}
+
+type sortOrder = {
+  ASC
+  DESC
+}
+
+type sharedScope = {
+  lastUpdateTs: number
+  key: string
+  value: number | boolean
+}
+
+type commodity = {
+  id: {
+    entityType: string
+    id: string
+  }
+  createdTime: number
+  additionalInfo: null
+  name: string
+  image: null
+  commodityIndex: string
+  feature: null
+  groupId: string
+  barCode: string
+  brand: string
+  type: string
+  market: string
+  mdVer: string
 }

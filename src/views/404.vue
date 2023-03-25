@@ -7,13 +7,7 @@
         <router-link to="/" style="text-decoration: none">
           <el-button type="primary" size="large">返回首页</el-button>
         </router-link>
-        <el-button
-          style="margin-left: 150px"
-          type="primary"
-          size="large"
-          @click="router.go(-1)"
-          >返回
-        </el-button>
+        <el-button style="margin-left: 150px" type="primary" size="large" @click="router.go(-1)">返回 </el-button>
       </div>
     </div>
   </div>

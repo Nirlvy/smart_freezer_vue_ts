@@ -3,67 +3,28 @@
     <div class="bg_card">
       <p>权限管理</p>
       <el-select v-model="value" class="m-5" @change="load">
-        <el-option
-          v-for="item in selectOption"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-        />
+        <el-option v-for="item in selectOption" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
-      <el-tree
-        ref="treeRef"
-        class="m-5"
-        node-key="id"
-        :data="data"
-        :props="props"
-        show-checkbox
-        default-expand-all
-      />
+      <el-tree ref="treeRef" class="m-5" node-key="id" :data="data" :props="props" show-checkbox default-expand-all />
       <el-button class="m-10" type="primary" @click="save">保存</el-button>
     </div>
     <div class="bg_card">
       <p>商品管理</p>
-      <el-transfer
-        v-model="disable"
-        class="transfer"
-        :titles="['启用', '禁用']"
-        :data="tdata"
-        @change="change"
-        @right-check-change="rchange"
-      >
+      <el-transfer v-model="disable" class="transfer" :titles="['启用', '禁用']" :data="tdata" @change="change" @right-check-change="rchange">
         <template #left-footer>
           <div class="lf">
-            <el-popover
-              placement="bottom"
-              :width="152"
-              trigger="hover"
-              content="右侧输入内容以添加"
-            >
+            <el-popover placement="bottom" :width="152" trigger="hover" content="右侧输入内容以添加">
               <template #reference>
-                <el-button class="transfer-footer" size="small" @click="newUp"
-                  >添加
-                </el-button>
+                <el-button class="transfer-footer" size="small" @click="newUp">添加 </el-button>
               </template>
             </el-popover>
-            <el-input
-              v-model="newGoods"
-              placeholder="新增产品"
-              size="small"
-              style="margin: 15px"
-              clearable
-            ></el-input>
+            <el-input v-model="newGoods" placeholder="新增产品" size="small" style="margin: 15px" clearable></el-input>
           </div>
         </template>
         <template #right-footer>
-          <el-popover
-            placement="bottom"
-            trigger="hover"
-            content="此框选中商品将被删除"
-          >
+          <el-popover placement="bottom" trigger="hover" content="此框选中商品将被删除">
             <template #reference>
-              <el-button class="transfer-footer" size="small" @click="del"
-                >删除
-              </el-button>
+              <el-button class="transfer-footer" size="small" @click="del">删除 </el-button>
             </template>
           </el-popover>
         </template>
@@ -158,9 +119,7 @@ const load = () => {
       label: item.name,
       disabled: false,
     }))
-    disable.value = res
-      .filter((item) => item.disable === true)
-      .map((item) => item.id)
+    disable.value = res.filter((item) => item.disable === true).map((item) => item.id)
   })
 }
 
@@ -180,12 +139,7 @@ const save = () => {
 }
 
 const newUp = () => {
-  if (
-    newGoods.value != '' &&
-    !tdata.value?.some((item: tdataOption) =>
-      item.label.includes(newGoods.value)
-    )
-  ) {
+  if (newGoods.value != '' && !tdata.value?.some((item: tdataOption) => item.label.includes(newGoods.value))) {
     request.get('/goods/up?name=' + newGoods.value).then((res) => {
       if (res.code === 200) {
         ElMessage.success('新增成功')
@@ -246,13 +200,7 @@ const rchange = (del: number[]) => {
   margin-left: 15px;
   padding: 6px 5px;
 }
-.transfer
-  :deep()
-  .el-transfer-panel
-  .el-transfer-panel__header
-  .el-checkbox
-  .el-checkbox__label
-  span {
+.transfer :deep() .el-transfer-panel .el-transfer-panel__header .el-checkbox .el-checkbox__label span {
   right: -110px !important;
 }
 .lf {

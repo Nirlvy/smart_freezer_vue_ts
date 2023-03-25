@@ -45,7 +45,7 @@ request.interceptors.response.use(
     if (error.response.data.message === 'Token has expired') {
       ElMessage.error(error.response.data.message)
       await router.push('/login')
-      // location.reload()
+      location.reload()
     }
     return Promise.reject(error)
   }

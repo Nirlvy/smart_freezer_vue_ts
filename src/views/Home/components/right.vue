@@ -7,23 +7,17 @@
           <el-icon :size="52" color="#FE7179">
             <Refrigerator />
           </el-icon>
-          <div class="card-text">{{ FreezerStore.cardValue[0].name }}</div>
-          <div class="card-text">{{ FreezerStore.cardValue[0].value }}</div>
+          <div class="card-text">{{ FreezerStore.totalFreezer[0].name }}</div>
+          <div class="card-text">{{ FreezerStore.totalFreezer[0].value }}</div>
         </div>
       </el-col>
-      <el-col
-        v-for="(item, index) in FreezerStore.cardValue.slice(1)"
-        :key="index"
-        :span="8"
-      >
+      <el-col v-for="(item, index) in FreezerStore.totalFreezer.slice(1)" :key="index" :span="8">
         <div class="tone">
           <el-progress
             type="circle"
             :percentage="
-              Math.floor((item.value * 100) / FreezerStore.cardValue[0].value)
-                ? Math.floor(
-                    (item.value * 100) / FreezerStore.cardValue[0].value
-                  )
+              Math.floor((item.value * 100) / FreezerStore.totalFreezer[0].value)
+                ? Math.floor((item.value * 100) / FreezerStore.totalFreezer[0].value)
                 : 0
             "
             :width="52"
@@ -63,17 +57,12 @@
 <script setup lang="ts">
 import request from '@/utils/request'
 import { useFreezerStore, useMainStore } from '@/store/store'
-import {
-  ChatRound,
-  ArrowRightBold,
-  Refrigerator,
-} from '@element-plus/icons-vue'
+import { ChatRound, ArrowRightBold, Refrigerator } from '@element-plus/icons-vue'
 import { ref, markRaw, reactive } from 'vue'
-// import { requestPage } from '@/utils/commonRequset'
+import { find } from '@/utils/commonRequset'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
-// const deviceInfos = ref<deviceInfos>()
 const entitiesQuery = ref<entitiesQueryFind>()
 const centerList = reactive([
   { name: '仓库代办', value: 0 },
@@ -87,119 +76,6 @@ const helpList = reactive([
   { icon: markRaw(ChatRound), name: '视频教程' },
   { icon: markRaw(ChatRound), name: '流程图' },
 ])
-const findPara = {
-  entityFilter: {
-    type: 'entityType',
-    entityType: 'DEVICE',
-  },
-  keyFilters: [
-    {
-      key: {
-        type: 'ATTRIBUTE',
-        key: 'out',
-      },
-      valueType: 'NUMERIC',
-      predicate: {
-        operation: 'EQUAL',
-        value: {
-          defaultValue: 1,
-          dynamicValue: null,
-        },
-        type: 'NUMERIC',
-      },
-    },
-  ],
-  pageLink: {
-    page: 0,
-    pageSize: 2147483647,
-    sortOrder: {
-      property: 'createdTime',
-      direction: 'DESC',
-    },
-  },
-}
-const object = {
-  entityCountCmds: [
-    {
-      query: {
-        entityFilter: {
-          type: 'entityType',
-          resolveMultiple: true,
-          entityType: 'DEVICE',
-        },
-        keyFilters: [
-          {
-            key: {
-              type: 'SERVER_ATTRIBUTE',
-              key: 'active',
-            },
-            valueType: 'BOOLEAN',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: true,
-                dynamicValue: null,
-              },
-              type: 'BOOLEAN',
-            },
-          },
-        ],
-      },
-      cmdId: 1,
-    },
-    {
-      query: {
-        entityFilter: {
-          type: 'entityType',
-          resolveMultiple: true,
-          entityType: 'DEVICE',
-        },
-        keyFilters: [
-          {
-            key: {
-              type: 'SERVER_ATTRIBUTE',
-              key: 'active',
-            },
-            valueType: 'BOOLEAN',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: false,
-                dynamicValue: null,
-              },
-              type: 'BOOLEAN',
-            },
-          },
-        ],
-      },
-      cmdId: 2,
-    },
-    {
-      query: {
-        entityFilter: {
-          type: 'entityType',
-          resolveMultiple: true,
-          entityType: 'DEVICE',
-        },
-        keyFilters: [
-          {
-            key: {
-              type: 'SHARED_ATTRIBUTE',
-              key: 'enable',
-            },
-            valueType: 'BOOLEAN',
-            predicate: {
-              type: 'BOOLEAN',
-              operation: 'EQUAL',
-              value: { defaultValue: false },
-            },
-          },
-        ],
-      },
-      cmdId: 3,
-    },
-  ],
-}
 const colors = [
   { color: '#f56c6c', percentage: 20 },
   { color: '#e6a23c', percentage: 40 },
@@ -208,38 +84,6 @@ const colors = [
   { color: '#6f7ad3', percentage: 100 },
 ]
 
-const WebSocketAPI = () => {
-  var token = MainStore.Login.token
-  // var entityId = "f845ced0-13bb-11ed-8e3b-8905497b0a79";
-  var webSocket = new WebSocket(
-    'ws://124.222.184.107/api/ws/plugins/telemetry?token=' + token
-  )
-  webSocket.onopen = function () {
-    var data = JSON.stringify(object)
-    webSocket.send(data)
-  }
-  webSocket.onmessage = function (event) {
-    var received_msg = JSON.parse(event.data)
-    console.log(received_msg)
-    switch (received_msg.cmdId) {
-      case 1:
-        FreezerStore.cardValue[1].value = received_msg.count
-        break
-      case 2:
-        FreezerStore.cardValue[0].value =
-          FreezerStore.cardValue[1].value + received_msg.count
-        break
-      case 3:
-        FreezerStore.cardValue[3].value =
-          FreezerStore.cardValue[0].value - received_msg.count
-        break
-    }
-  }
-  // webSocket.onclose = function () {
-  //   console.log('Connection is closed!')
-  // }
-}
-
 const init = () => {
   request.get<USER & E>('/user/' + MainStore.Jwt.userId).then((res) => {
     if (res.data.status) {
@@ -247,25 +91,13 @@ const init = () => {
     }
     MainStore.User = res.data
   })
-  // requestPage(21474483647, 0).then((res) => {
-  //   if (res) {
-  //     deviceInfos.value = res
-  //     FreezerStore.cardValue.total = res.totalElements
-  //   }
-  // })
-  request
-    .post<entitiesQueryFind & E>('/entitiesQuery/find', findPara)
-    .then((res) => {
-      if (res.data.status) {
-        return
-      }
-      entitiesQuery.value = res.data
-      FreezerStore.cardValue[2].value = res.data.totalElements
-      // entitiesQuery.value.data.forEach((item, index) => {
-      //   request.get<deviceInfo>('/device/info/' + item[index].entityId.id)
-      // })
-    })
-  WebSocketAPI()
+  find(FreezerStore.totalFreezer[0].value, 0, 'Out').then((res) => {
+    if (!res) {
+      return
+    }
+    entitiesQuery.value = res
+    FreezerStore.totalFreezer[2].value = res.totalElements
+  })
 }
 init()
 </script>

@@ -12,40 +12,40 @@ export const useMainStore = defineStore('main', {
     enabled: true,
     strategies: [{ paths: ['Login', 'Jwt', 'User'] }],
   },
-  actions: {},
 })
+
+const totalFreezer = ['全部设备', '在线设备', '投放设备', '启用设备', '设备告警率', '纯净度', '通电设备']
 
 export const useFreezerStore = defineStore('freezer', {
   state: () => ({
-    cardValue: [
-      {
-        name: '全部设备',
-        value: 0,
-      },
-      {
-        name: '在线设备',
-        value: 0,
-      },
-      {
-        name: '投放设备',
-        value: 0,
-      },
-      {
-        name: '启用设备',
-        value: 0,
-      },
-      {
-        name: '设备告警率',
-        value: 0,
-      },
-      {
-        name: '纯净度',
-        value: 0,
-      },
-    ] as CardValue,
+    totalFreezer: totalFreezer.map((item) => ({
+      name: item,
+      value: 0,
+    })),
+    freezerCard: '全部设备',
+    chooseRow: {} as deviceInfo,
   }),
   persist: {
     enabled: true,
-    strategies: [{ paths: ['cardValue'] }],
+    strategies: [{ paths: ['totalFreezer'] }],
+  },
+})
+
+export const useItemStore = defineStore('item', {
+  state: () => ({
+    id2Item: [] as id2Item[],
+    allItem: [] as complexly[],
+    itemCount: 0,
+    drawer: false,
+    items: [
+      { label: '购物图片', checked: true },
+      { label: '纯净度', checked: true },
+      { label: '陈列信息', checked: true },
+      { label: '陈列图片', checked: true },
+    ],
+  }),
+  persist: {
+    enabled: true,
+    strategies: [{ paths: ['id2Item'] }],
   },
 })

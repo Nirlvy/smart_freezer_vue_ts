@@ -10,8 +10,8 @@
             <div>{{ FreezerStore.freezerCard }}</div>
             <div>{{ cardValue[0].value }}</div>
           </div>
-        </el-card></el-tooltip
-      >
+        </el-card>
+      </el-tooltip>
     </el-col>
     <el-col v-for="(item, index) in cardValue.slice(1)" :key="index" :span="3">
       <el-card class="card">

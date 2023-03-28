@@ -35,48 +35,46 @@
   </div>
   <el-table :data="data.tableData" size="large" @selection-change="handleSelectionChange" @row-click="handleRowClick">
     <el-table-column fixed="left" type="selection" />
-    <el-table-column prop="name" label="资产编码" width="150" />
-    <el-table-column prop="deviceName" label="设备名称" width="100" />
-    <el-table-column prop="capacity" label="IMEI" />
-    <el-table-column prop="address" label="设备地址" width="200" show-overflow-tooltip />
-    <el-table-column prop="shelves" label="设备厂商" width="100" />
-    <el-table-column prop="shelves" label="瓶装厂" />
-    <el-table-column prop="shelves" label="省" />
-    <el-table-column prop="shelves" label="市" />
-    <el-table-column prop="shelves" label="业代" />
-    <el-table-column prop="shelves" label="业务所" />
-    <el-table-column prop="shelves" label="代理电话" width="100" />
-    <el-table-column prop="shelves" label="仓库" />
-    <el-table-column prop="shelves" label="仓库地址" width="100" />
-    <el-table-column prop="shelves" label="客户形态" width="100" />
-    <el-table-column prop="shelves" label="客户地址" width="100" />
-    <el-table-column prop="shelves" label="购入日期" width="100" />
-    <el-table-column prop="shelves" label="陈列" />
-    <el-table-column fixed="right" prop="SHARED_SCOPE" label="状态" width="150">
+    <el-table-column prop="name" label="资产编码" min-width="140" />
+    <el-table-column prop="deviceName" label="设备名称" min-width="100" />
+    <el-table-column label="IMEI" min-width="150">
       <template #default="scope">
-        <el-icon :color="getColor(scope.row.SHARED_SCOPE)">
+        {{ getImei(scope.row.SCOPE) }}
+      </template>
+    </el-table-column>
+    <el-table-column prop="address" label="设备地址" min-width="200" show-overflow-tooltip />
+    <el-table-column label="资产所有" width="100" />
+    <el-table-column label="设备厂商" />
+    <el-table-column label="陈列">
+      <template #default>
+        <el-button disabled>查看</el-button>
+      </template>
+    </el-table-column>
+    <el-table-column fixed="right" label="状态" width="150">
+      <template #default="scope">
+        <el-icon :color="getColor(scope.row.SCOPE)">
           <Link />
         </el-icon>
-        <el-icon v-if="getEnable(scope.row.SHARED_SCOPE)" class="ml-5">
+        <el-icon v-if="getEnable(scope.row.SCOPE)" class="ml-5">
           <Lock />
         </el-icon>
-        <span class="ml-5">{{ getRelease(scope.row.SHARED_SCOPE) }}</span>
+        <span class="ml-5">{{ getRelease(scope.row.SCOPE) }}</span>
       </template>
     </el-table-column>
     <el-table-column fixed="right" prop="shelves" label="操作" width="350">
       <template #default="scope">
-        <el-button size="small" @click="data.drawer = true">详情</el-button>
+        <el-button size="small" @click="FreezerStore.drawer = true">详情</el-button>
         <el-divider direction="vertical" />
         <el-button type="primary" size="small" plain>
-          {{ getSecondButton(scope.row.SHARED_SCOPE) }}
+          {{ getSecondButton(scope.row.SCOPE) }}
         </el-button>
         <el-divider direction="vertical" />
         <el-button type="primary" size="small" plain>
-          {{ getThirdButton(scope.row.SHARED_SCOPE) }}
+          {{ getThirdButton(scope.row.SCOPE) }}
         </el-button>
         <el-divider direction="vertical" />
-        <el-button :type="scope.row.SHARED_SCOPE?.find((item) => item.key === 'enable')?.value ? 'danger' : 'primary'" size="small" plain>
-          {{ scope.row.SHARED_SCOPE?.find((item) => item.key === 'enable')?.value ? '停用' : '启用' }}
+        <el-button :type="scope.row.SCOPE?.find((item) => item.key === 'enable')?.value ? 'danger' : 'primary'" size="small" plain>
+          {{ scope.row.SCOPE?.find((item) => item.key === 'enable')?.value ? '停用' : '启用' }}
         </el-button>
         <el-divider direction="vertical" />
         <el-button type="danger" size="small" plain>注销</el-button>
@@ -95,42 +93,79 @@
       @current-change="tableInit"
     />
   </div>
-  <el-drawer v-model="data.drawer" title="详情" size="60%">
-    <Drawer />
-  </el-drawer>
+  <Drawer />
 </template>
 
 <script setup lang="ts">
-import { useFreezerStore } from '@/store/store'
-import { requestPage, getSharedScope, devicesOperate, find, getDevicesInfo } from '@/utils/commonRequset'
+import { useFreezerStore, useMainStore } from '@/store/store'
+import { requestPage, getScope, devicesOperate, find, getDevicesInfo } from '@/utils/commonRequset'
 import { Link, Lock, ArrowDown, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { reactive, watch } from 'vue'
 import Drawer from './Drawer/index.vue'
 
+// const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
 const data = reactive({
   tableData: [] as deviceInfo[],
   currentPage: 1,
-  pageSize: 10,
+  pageSize: 5,
   total: 0,
   importPage: false,
   chooseLine: [] as deviceInfo[],
   select: '',
   input: '',
-  drawer: false,
 })
+// const object = {
+//   tsSubCmds: [
+//     {
+//       entityType: 'DEVICE',
+//       entityId: '009ef0c0-22fd-11ed-b8d0-f97a4e0c2279',
+//       scope: 'LATEST_TELEMETRY',
+//       keys: 'base.comm.pos.addr',
+//       cmdId: 1,
+//     },
+//   ],
+// }
 
 const handleGetSharedScope = () => {
   data.tableData.forEach((item) => {
-    getSharedScope(item.id.id).then((res) => {
+    getScope(item.id.id, 'page').then((res) => {
       if (!res) {
         return
       }
-      item.SHARED_SCOPE = res
+      item.SCOPE = res
     })
   })
 }
+
+// const WebSocketAPI = () => {
+//   var token = MainStore.Login.token
+//   var webSocket = new WebSocket('ws://124.222.184.107/api/ws/plugins/telemetry?token=' + token)
+//   webSocket.onopen = function () {
+//     var data = JSON.stringify(object)
+//     webSocket.send(data)
+//   }
+//   webSocket.onmessage = function (event) {
+//     var received_msg = JSON.parse(event.data)
+//     console.log(received_msg)
+//     // switch (received_msg.cmdId) {
+//     //   case 1:
+//     //     FreezerStore.totalFreezer[1].value = received_msg.count
+//     //     break
+//     //   case 2:
+//     //     FreezerStore.totalFreezer[0].value = FreezerStore.totalFreezer[1].value + received_msg.count
+//     //     break
+//     //   case 3:
+//     //     FreezerStore.totalFreezer[3].value = FreezerStore.totalFreezer[0].value - received_msg.count
+//     //     break
+//     // }
+//   }
+//   // webSocket.onclose = function () {
+//   //   console.log('Connection is closed!')
+//   // }
+// }
+// WebSocketAPI()
 
 const tableInit = () => {
   if (FreezerStore.freezerCard === '全部设备') {
@@ -164,6 +199,7 @@ const tableInit = () => {
         }
         data.tableData = res
         handleGetSharedScope()
+        // WebSocketAPI()
       })
     })
   }
@@ -180,54 +216,60 @@ watch(
   }
 )
 
-const getColor = (sharedscope: sharedScope[] | undefined) => {
-  if (sharedscope) {
-    return sharedscope.find((item) => item.key === 'active')?.value ? 'green' : 'red'
+const getImei = (scope: scope[] | undefined) => {
+  if (scope) {
+    return scope.find((item) => item.key === 'imei')?.value
+  }
+}
+
+const getColor = (scope: scope[] | undefined) => {
+  if (scope) {
+    return scope.find((item) => item.key === 'active')?.value ? 'green' : 'red'
   } else {
     return 'gray'
   }
 }
 
-const getEnable = (sharedscope: sharedScope[] | undefined) => {
-  if (sharedscope) {
-    return sharedscope.find((item) => item.key === 'enable')?.value ? false : true
+const getEnable = (scope: scope[] | undefined) => {
+  if (scope) {
+    return scope.find((item) => item.key === 'enable')?.value ? false : true
   }
 }
 
-const getRelease = (sharedscope: sharedScope[] | undefined) => {
-  if (!sharedscope) {
+const getRelease = (scope: scope[] | undefined) => {
+  if (!scope) {
     return
   }
   if (FreezerStore.freezerCard === '全部设备') {
-    return sharedscope.find((item) => item.key === 'out')?.value ? '投放' : sharedscope.find((item) => item.key === 'assign') ? '待投放' : '回库'
+    return scope.find((item) => item.key === 'out')?.value ? '投放' : scope.find((item) => item.key === 'assign') ? '待投放' : '回库'
   } else if (FreezerStore.freezerCard === '在库设备') {
-    return sharedscope.find((item) => item.key === 'check')?.value ? '回库' : '待检验'
+    return scope.find((item) => item.key === 'check')?.value ? '回库' : '待检验'
   } else {
-    return sharedscope.find((item) => item.key === 'out')?.value ? '投放' : '待投放'
+    return scope.find((item) => item.key === 'out')?.value ? '投放' : '待投放'
   }
 }
 
-const getSecondButton = (sharedscope: sharedScope[] | undefined) => {
-  if (!sharedscope) {
+const getSecondButton = (scope: scope[] | undefined) => {
+  if (!scope) {
     return
   }
   switch (FreezerStore.freezerCard) {
     case '全部设备':
       return '激活'
     case '在库设备':
-      return sharedscope.find((item) => item.key === 'check')?.value ? '激活' : '检验'
+      return scope.find((item) => item.key === 'check')?.value ? '激活' : '检验'
     case '在店设备':
       return '激活'
   }
 }
 
-const getThirdButton = (sharedscope: sharedScope[] | undefined) => {
-  if (!sharedscope) {
+const getThirdButton = (scope: scope[] | undefined) => {
+  if (!scope) {
     return
   }
   switch (FreezerStore.freezerCard) {
     case '全部设备':
-      return sharedscope.find((item) => item.key === 'enable')?.value ? '解绑' : '分配'
+      return scope.find((item) => item.key === 'enable')?.value ? '解绑' : '分配'
     case '在库设备':
       return '分配'
     case '在店设备':
@@ -273,6 +315,7 @@ const handleSelectionChange = (val: deviceInfo[]) => {
 
 const handleRowClick = (row: deviceInfo) => {
   FreezerStore.chooseRow = row
+  console.log(row)
 }
 
 const search = () => {

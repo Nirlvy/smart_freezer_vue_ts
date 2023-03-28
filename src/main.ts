@@ -19,8 +19,4 @@ const app = createApp(App)
 
 app.config.globalProperties.$axios = axios
 
-app
-  .use(pinia.use(piniaPersist))
-  .use(router)
-  .use(ElementPlus, { locale: zhCn })
-  .mount('#app')
+app.use(pinia.use(piniaPersist)).use(router).use(ElementPlus, { locale: zhCn }).mount('#app')

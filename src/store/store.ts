@@ -7,6 +7,8 @@ export const useMainStore = defineStore('main', {
     Login: {} as Login,
     Jwt: {} as JWT,
     User: {} as USER,
+    dialog: false,
+    imgBase64: '',
   }),
   persist: {
     enabled: true,
@@ -24,6 +26,7 @@ export const useFreezerStore = defineStore('freezer', {
     })),
     freezerCard: '全部设备',
     chooseRow: {} as deviceInfo,
+    drawer: false,
   }),
   persist: {
     enabled: true,

@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { useFreezerStore, useItemStore } from '@/store/store'
-import { getCommodityByIndex, getComplexlyPage, getDeviceInfo } from '@/utils/commonRequset'
+import { getCommodityByIndex, getComplexlyPage, getDeviceInfo, getTime } from '@/utils/commonRequset'
 import { markRaw, reactive, ref } from 'vue'
 import { List, Operation, MapLocation } from '@element-plus/icons-vue'
 import Drawer from './Drawer.vue'
@@ -169,17 +169,6 @@ const getProductName = async (sale: { [key: string]: string }) => {
   const id2Item = { [key]: res.name }
   Array.isArray(itemStore.id2Item) ? itemStore.id2Item.push(id2Item) : (itemStore.id2Item = [id2Item])
   return res.name + ':' + sale[Object.keys(sale)[0]]
-}
-
-const getTime = (time: number) => {
-  var date = new Date(time)
-  const Y = date.getFullYear() + '-'
-  const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
-  const D = (date.getDate() < 10 ? '0' : '') + date.getDate() + ' '
-  const h = (date.getHours() < 10 ? '0' : '') + date.getHours() + ':'
-  const m = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes() + ':'
-  const s = (date.getSeconds() < 10 ? '0' : '') + date.getSeconds()
-  return Y + M + D + h + m + s
 }
 
 const getPurchaseImage = async (purchaseImage: { [key: string]: string } | null) => {

@@ -15,6 +15,7 @@
         <Breadcrumb />
         <el-main>
           <router-view />
+          <MqttDialog />
         </el-main>
       </el-container>
     </el-container>
@@ -26,6 +27,8 @@ import Aside from './Aside.vue'
 import Header from './Header.vue'
 import Breadcrumb from './Breadcrumb.vue'
 import { useFreezerStore, useMainStore } from '@/store/store'
+import * as Paho from 'paho-mqtt'
+import MqttDialog from './MqttDialog.vue'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
@@ -133,11 +136,29 @@ const WebSocketAPI = () => {
         break
     }
   }
-  // webSocket.onclose = function () {
-  //   console.log('Connection is closed!')
-  // }
 }
+
+const mqttAPI = () => {
+  const client = new Paho.Client('broker.emqx.io', 8083, 'nirlvy')
+  client.onConnectionLost = (responseObject) => {
+    if (responseObject.errorCode !== 0) {
+      console.log('MQTT连接已断开：' + responseObject.errorMessage)
+    }
+  }
+  client.connect({
+    onSuccess: () => {
+      client.subscribe('mooc12345')
+    },
+    keepAliveInterval: 10,
+  })
+  client.onMessageArrived = (message) => {
+    MainStore.imgBase64 = 'data:image/jpeg;base64,' + message.payloadString
+    MainStore.dialog = true
+  }
+}
+
 WebSocketAPI()
+mqttAPI()
 </script>
 
 <style scoped>

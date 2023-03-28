@@ -54,7 +54,7 @@ type deviceInfo = {
   customerTitle: null
   customerIsPublic: boolean
   deviceProfileName: string
-  SHARED_SCOPE?: sharedScope[]
+  SCOPE?: scope[]
 }
 
 type deviceInfos = {
@@ -124,7 +124,7 @@ type sortOrder = {
   DESC
 }
 
-type sharedScope = {
+type scope = {
   lastUpdateTs: number
   key: string
   value: number | boolean
@@ -147,4 +147,65 @@ type commodity = {
   type: string
   market: string
   mdVer: string
+}
+
+type chart =
+  | {
+      'base.core.popu.cnt': Array<{ ts: number; value: string }>
+    }
+  | {
+      'base.core.door.cnt': Array<{ ts: number; value: string }>
+    }
+  | {
+      'base.core.frhCtrl.temp.val': Array<{ ts: number; value: string }>
+    }
+  | {
+      'base.core.power.u': Array<{ ts: number; value: string }>
+    }
+
+type deviceProfile = {
+  id: {
+    entityType: string
+    id: string
+  }
+  createdTime: number
+  tenantId: {
+    entityType: string
+    id: string
+  }
+  name: string
+  description: string
+  image: null
+  type: string
+  transportType: string
+  provisionType: string
+  defaultRuleChainId: {
+    entityType: string
+    id: string
+  }
+  defaultDashboardId: null
+  defaultQueueName: string
+  profileData: {
+    configuration: {
+      type: string
+    }
+    transportConfiguration: {
+      type: string
+    }
+    provisionConfiguration: {
+      type: string
+      provisionDeviceSecret: string
+    }
+    alarms: []
+  }
+  provisionDeviceKey: string
+  firmwareId: null
+  softwareId: null
+  modelwareId: null
+  featurewareId: null
+  pfwareId: {
+    entityType: string
+    id: string
+  }
+  default: boolean
 }

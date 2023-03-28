@@ -20,6 +20,7 @@
     "echarts": "^5.4.1",
     "element-plus": "^2.3.0",
     "jwt-decode": "^3.1.2",
+    "paho-mqtt": "^1.1.0",
     "pinia": "^2.0.33",
     "pinia-plugin-persist": "^1.0.0",
     "vue": "^3.2.47",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^1.2.3",
     "@types/node": "^18.15.3",
+    "@types/paho-mqtt": "^1.0.6",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
     "@vitejs/plugin-vue": "^4.0.0",

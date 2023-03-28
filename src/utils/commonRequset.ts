@@ -48,19 +48,32 @@ export const getDevicesInfo = async (deviceIds: string[]) => {
   return res.data
 }
 
-export const getSharedScope = async (device: string) => {
-  const keys = '/SHARED_SCOPE?keys=enable,act'
-  const keys2 = '/SERVER_SCOPE?keys=check,out,assign,active'
+export const getScope = async (device: string, mode: 'page' | 'device') => {
+  const param = {
+    page: ['enable,act', 'check,out,assign,active', 'imei'],
+    device: [
+      '',
+      'base.core.frhCtrl.group,base.core.frhCtrl.name,base.core.frhCtrl.typeOpt,base.core.frhCtrl.modeOpt,base.core.frhCtrl.temp.name,base.core.frhCtrl.temp2.name,base.core.frhCtrl.temp3.name,base.core.frhCtrl.temp4.name,base.core.frhCtrl.comp.name,base.core.frhCtrl.comp.group,base.core.frhCtrl.fan.group,base.core.frhCtrl.fan.name,base.core.frhCtrl.revDefr.group,base.core.frhCtrl.revDefr.name,base.core.light.frLight.name,base.core.light.frLight.group,base.core.popu.group,base.core.popu.name,base.core.power.name,base.core.power.group,base.comm.pos.name,base.comm.pos.group,base.comm.battery.name,base.comm.battery.group,adv.ai.group,adv.ai.name',
+      'assID,devSN,ctrlVer,lctrlVer,imei',
+    ],
+  }
+  const keys = '/SHARED_SCOPE?keys=' + param[mode][0]
+  const keys2 = '/SERVER_SCOPE?keys=' + param[mode][1]
+  const keys3 = '/CLIENT_SCOPE?keys=' + param[mode][2]
   const url = '/plugins/telemetry/DEVICE/' + device + '/values/attributes'
-  const res1 = await request.get<sharedScope[] & E>(url + keys)
+  const res1 = await request.get<scope[] & E>(url + keys)
   if (res1.data.status) {
     return
   }
-  const res2 = await request.get<sharedScope[] & E>(url + keys2)
+  const res2 = await request.get<scope[] & E>(url + keys2)
   if (res2.data.status) {
     return
   }
-  return res1.data.concat(res2.data)
+  const res3 = await request.get<scope[] & E>(url + keys3)
+  if (res3.data.status) {
+    return
+  }
+  return res1.data.concat(res2.data).concat(res3.data)
 }
 
 export const devicesOperate = async (deviceIds: string, operate: 'export' | 'enable' | 'disable' | 'delete') => {
@@ -392,3 +405,40 @@ export const getCommodityByIndex = async (index: number | string) => {
 // ) => {
 //   const url = '/tenant/commodities' + '?pageSize=' + page.pageSize + '&page=' + (page.currentPage - 1)
 // }
+
+export const getDeviceCharts = async (deviceId: string, time: number[]) => {
+  const param = ['base.core.popu.cnt', 'base.core.door.cnt', 'base.core.frhCtrl.temp.val', 'base.core.power.u']
+  const url1 = '/plugins/telemetry/DEVICE/' + deviceId + '/values/timeseries?keys='
+  const url2 = '&limit=100&agg=NONE&orderBy=DESC&useStrictDataTypes=false'
+  const promises = param.map(async (item) => {
+    const response = await request.get<chart & E>(url1 + item + '&startTs=' + time[0] + '&endTs=' + time[1] + url2)
+    if (response.data.status) {
+      return
+    }
+    return {
+      [item]: response.data[item].reverse(),
+    }
+  })
+  const res = await Promise.all(promises)
+  return res
+}
+
+export const getTime = (time: number) => {
+  const date = new Date(time)
+  const Y = date.getFullYear() + '-'
+  const M = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-'
+  const D = (date.getDate() < 10 ? '0' : '') + date.getDate() + ' '
+  const h = (date.getHours() < 10 ? '0' : '') + date.getHours() + ':'
+  const m = (date.getMinutes() < 10 ? '0' : '') + date.getMinutes() + ':'
+  const s = (date.getSeconds() < 10 ? '0' : '') + date.getSeconds()
+  return Y + M + D + h + m + s
+}
+
+export const getDeviceProfile = async (deviceId: string) => {
+  const url = '/deviceProfile/' + deviceId
+  const res = await request.get<deviceProfile & E>(url)
+  if (res.data.status) {
+    return
+  }
+  return res.data
+}

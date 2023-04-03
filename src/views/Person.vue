@@ -1,12 +1,5 @@
 <template>
-  <el-form
-    ref="ruleFormRef"
-    label-width="80px"
-    :model="user"
-    :rules="rules"
-    status-icon
-    class="form"
-  >
+  <el-form ref="ruleFormRef" label-width="80px" :model="user" :rules="rules" status-icon class="form">
     <el-upload
       class="avatar-uploader"
       :action="uploadIp"
@@ -61,36 +54,15 @@
       />
     </el-form-item>
     <el-form-item class="el-form-button">
-      <el-button
-        type="primary"
-        size="large"
-        round
-        @click="confirm(ruleFormRef)"
-      >
-        确认修改
-      </el-button>
-      <el-button type="success" size="large" round @click="router.go(-1)">
-        返回
-      </el-button>
+      <el-button type="primary" size="large" round @click="confirm(ruleFormRef)"> 确认修改 </el-button>
+      <el-button type="success" size="large" round @click="router.go(-1)"> 返回 </el-button>
     </el-form-item>
   </el-form>
 </template>
 
 <script lang="ts" setup>
 import { Lock, UserFilled, Plus } from '@element-plus/icons-vue'
-import {
-  FormRules,
-  FormInstance,
-  ElMessage,
-  ElForm,
-  ElFormItem,
-  ElInput,
-  ElButton,
-  UploadProps,
-  ElDatePicker,
-  ElIcon,
-  ElUpload,
-} from 'element-plus'
+import { FormRules, FormInstance, ElMessage, ElForm, ElFormItem, ElInput, ElButton, UploadProps, ElDatePicker, ElIcon, ElUpload } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMainStore } from '../store/store'
@@ -112,15 +84,11 @@ const uploadIp = ServerIp + '/file/upload'
 const localuser = store.User
 
 const load = () => {
-  request
-    .get(
-      '/user/page?pageNum=1' + '&pageSize=1' + '&userName=' + localuser.userName
-    )
-    .then((res) => {
-      if (res.records && res.records[0]) {
-        Object.assign(user, res.records[0] as object)
-      }
-    })
+  request.get('/user/page?pageNum=1' + '&pageSize=1' + '&userName=' + localuser.userName).then((res) => {
+    if (res.records && res.records[0]) {
+      Object.assign(user, res.records[0] as object)
+    }
+  })
 }
 
 load()
@@ -141,9 +109,7 @@ const rules = reactive<FormRules>({
     { required: true, message: '请输入用户名', trigger: 'blur' },
     { min: 1, max: 20, message: '长度应该为1到20位', trigger: 'blur' },
   ],
-  password: [
-    { min: 6, max: 30, message: '长度应该为6到30位', trigger: 'blur' },
-  ],
+  password: [{ min: 6, max: 30, message: '长度应该为6到30位', trigger: 'blur' }],
   confirm_password: [
     { min: 6, max: 30, message: '长度应该为6到30位', trigger: 'blur' },
     { validator: validatePass2, trigger: 'blur' },

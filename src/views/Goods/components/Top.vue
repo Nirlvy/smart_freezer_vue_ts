@@ -45,13 +45,13 @@ const initEcharts = async () => {
   }
   const todayStamp = new Date(new Date().toLocaleDateString()).getTime()
   const nowStamp = Date.now()
-  const res = await getComplexlyPage({ pageSize: 100000, currentPage: 1 }, { time: [todayStamp, nowStamp] })
-  if (!res) {
-    return
+  if (itemStore.allItem.length === 0 && itemStore.itemCount === 0) {
+    const res = await getComplexlyPage({ pageSize: 100000, currentPage: 1 }, { time: [todayStamp, nowStamp] })
+    if (!res) return
+    itemStore.allItem = res.data
+    itemStore.itemCount = res.totalElements
   }
-  itemStore.allItem = res.data
-  itemStore.itemCount = res.totalElements
-  const count = res.data.reduce((acc, curr) => {
+  const count = itemStore.allItem.reduce((acc, curr) => {
     Object.keys(curr.sale).forEach((key) => {
       if (curr.sale[key] === '1') {
         if (acc[key]) {
@@ -64,11 +64,11 @@ const initEcharts = async () => {
     return acc
   }, {})
   for (const key in count) {
-    const res2 = await getCommodityByIndex(key)
-    if (!res2) {
-      return
-    }
     if (!itemStore.id2Item.find((item) => Object.keys(item)[0] === key)) {
+      const res2 = await getCommodityByIndex(key)
+      if (!res2) {
+        return
+      }
       Array.isArray(itemStore.id2Item) ? itemStore.id2Item.push({ [key]: res2.name }) : (itemStore.id2Item = [{ [key]: res2.name }])
     }
   }
@@ -119,7 +119,7 @@ const initEcharts = async () => {
       ],
     }
   }
-  let result: Array<{ value: any; name: string }> = []
+  let result: Array<{ value: number; name: string }> = []
   for (const key in count) {
     const countKey = count[key]
     const item = itemStore.id2Item.find((item) => Object.keys(item)[0] === key)

@@ -130,9 +130,7 @@ const tableOrMapIcon = [markRaw(List), markRaw(MapLocation)]
 
 const tableInit = () => {
   getComplexlyPage(data).then(async (res) => {
-    if (!res) {
-      return
-    }
+    if (!res) return
     for (const item of res.data) {
       const deviceName = (await getDeviceName(item.deviceId)) || ''
       const productName = (await getProductName(item.sale)) || ''

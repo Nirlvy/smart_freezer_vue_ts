@@ -22,6 +22,10 @@
   margin-left: 10px;
 }
 
+.mb-10 {
+  margin-bottom: 10px;
+}
+
 .m-5 {
   margin: 5px;
 }
@@ -32,4 +36,12 @@
 
 .pu-10 {
   padding: 10px 0;
+}
+
+.flex {
+  display: flex;
+}
+
+.block {
+  display: block;
 }

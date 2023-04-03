@@ -53,22 +53,27 @@ export const setRotes = () => {
           {
             path: 'freezer',
             name: '设备管理',
-            component: () => import('../views/Freezer/index.vue'),
+            component: () => import('@/views/Freezer/index.vue'),
           },
           {
             path: 'goods',
             name: '商品管理',
-            component: () => import('../views/Goods/index.vue'),
+            component: () => import('@/views/Goods/index.vue'),
+          },
+          {
+            path: 'rec',
+            name: '识别管理',
+            component: () => import('@/views/Rec/index.vue'),
           },
           {
             path: 'role',
             name: '管理控制',
-            component: () => import('../views/Role.vue'),
+            component: () => import('@/views/Role.vue'),
           },
           {
             path: 'user',
             name: '用户记录',
-            component: () => import('../views/User.vue'),
+            component: () => import('@/views/User.vue'),
           },
         ]
         manageRoutes.children = manageRoutes.children.concat(itemMenu)

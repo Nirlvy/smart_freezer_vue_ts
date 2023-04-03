@@ -19,7 +19,7 @@ import Bottom from './components/Bottom.vue'
   flex-direction: column;
 }
 .top {
-  height: 43vh;
+  height: 50vh;
   margin-bottom: 10px;
 }
 </style>

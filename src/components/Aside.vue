@@ -26,6 +26,12 @@
           </el-icon>
           商品管理
         </el-menu-item>
+        <el-menu-item index="/manage/rec">
+          <el-icon>
+            <VideoCamera />
+          </el-icon>
+          识别管理
+        </el-menu-item>
         <el-menu-item index="/manage/role">
           <el-icon>
             <Files />
@@ -58,7 +64,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { House, Refrigerator, Present, Box, Tickets, Fold, Files, DataAnalysis } from '@element-plus/icons-vue'
+import { House, Refrigerator, Present, Box, Tickets, Fold, Files, DataAnalysis, VideoCamera } from '@element-plus/icons-vue'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 
 const isCollapse = ref(false)

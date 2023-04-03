@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { useFreezerStore, useMainStore } from '@/store/store'
+import { useFreezerStore } from '@/store/store'
 import { requestPage, getScope, devicesOperate, find, getDevicesInfo } from '@/utils/commonRequset'
 import { Link, Lock, ArrowDown, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -315,7 +315,6 @@ const handleSelectionChange = (val: deviceInfo[]) => {
 
 const handleRowClick = (row: deviceInfo) => {
   FreezerStore.chooseRow = row
-  console.log(row)
 }
 
 const search = () => {

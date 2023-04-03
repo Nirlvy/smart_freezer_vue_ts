@@ -1,24 +1,11 @@
 <template>
-  <div
-    class="windows"
-    :class="{ focus: MianStore.Blur }"
-    @mouseenter="MianStore.Blur = true"
-    @mouseleave="MianStore.Blur = false"
-  >
+  <div class="windows" :class="{ focus: MianStore.Blur }" @mouseenter="MianStore.Blur = true" @mouseleave="MianStore.Blur = false">
     <div style="margin: 20px 0; text-align: center; font-size: 24px">
       <b>智能冰柜管理系统</b>
     </div>
     <el-form ref="ruleFormRef" :model="user" :rules="rules">
       <el-form-item prop="username">
-        <el-input
-          v-model="user.username"
-          size="large"
-          style="margin: 10px 0"
-          :prefix-icon="UserFilled"
-          placeholder="用户名"
-          autocomplete
-          clearable
-        />
+        <el-input v-model="user.username" size="large" style="margin: 10px 0" :prefix-icon="UserFilled" placeholder="用户名" autocomplete clearable />
       </el-form-item>
       <el-form-item prop="password">
         <el-input
@@ -34,9 +21,7 @@
       </el-form-item>
       <el-form-item class="el-form-button">
         <el-button type="primary" size="large" round @click="login(ruleFormRef)"> 登录 </el-button>
-        <el-button type="success" size="large" round @click="router.push('/register')">
-          注册
-        </el-button>
+        <el-button type="success" size="large" round @click="router.push('/register')"> 注册 </el-button>
       </el-form-item>
     </el-form>
   </div>

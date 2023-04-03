@@ -48,7 +48,7 @@ export const getDevicesInfo = async (deviceIds: string[]) => {
   return res.data
 }
 
-export const getScope = async (device: string, mode: 'page' | 'device') => {
+export const getScope = async (device: string, mode: 'page' | 'device' | 'info') => {
   const param = {
     page: ['enable,act', 'check,out,assign,active', 'imei'],
     device: [
@@ -56,6 +56,7 @@ export const getScope = async (device: string, mode: 'page' | 'device') => {
       'base.core.frhCtrl.group,base.core.frhCtrl.name,base.core.frhCtrl.typeOpt,base.core.frhCtrl.modeOpt,base.core.frhCtrl.temp.name,base.core.frhCtrl.temp2.name,base.core.frhCtrl.temp3.name,base.core.frhCtrl.temp4.name,base.core.frhCtrl.comp.name,base.core.frhCtrl.comp.group,base.core.frhCtrl.fan.group,base.core.frhCtrl.fan.name,base.core.frhCtrl.revDefr.group,base.core.frhCtrl.revDefr.name,base.core.light.frLight.name,base.core.light.frLight.group,base.core.popu.group,base.core.popu.name,base.core.power.name,base.core.power.group,base.comm.pos.name,base.comm.pos.group,base.comm.battery.name,base.comm.battery.group,adv.ai.group,adv.ai.name',
       'assID,devSN,ctrlVer,lctrlVer,imei',
     ],
+    info: ['', '', ''],
   }
   const keys = '/SHARED_SCOPE?keys=' + param[mode][0]
   const keys2 = '/SERVER_SCOPE?keys=' + param[mode][1]
@@ -64,6 +65,9 @@ export const getScope = async (device: string, mode: 'page' | 'device') => {
   const res1 = await request.get<scope[] & E>(url + keys)
   if (res1.data.status) {
     return
+  }
+  if (mode === 'info') {
+    return res1.data
   }
   const res2 = await request.get<scope[] & E>(url + keys2)
   if (res2.data.status) {
@@ -440,5 +444,20 @@ export const getDeviceProfile = async (deviceId: string) => {
   if (res.data.status) {
     return
   }
+  return res.data
+}
+
+// export const getOtaPackage = async (pfwareId: string) => {
+//   const url = '/otaPackage/' + pfwareId + '/download'
+//   const res =await request.get
+// }
+
+export const modeSwitch = async (deviceId: string, value: number, mode: 'work' | 'run') => {
+  const url = '/plugins/telemetry/DEVICE/' + deviceId + '/SHARED_SCOPE'
+  const modeChoice = {
+    work: { 'base.core.frhCtrl.mode': value },
+    run: { 'base.core.frhCtrl.type': value },
+  }
+  const res = await request.post(url, modeChoice[mode])
   return res.data
 }

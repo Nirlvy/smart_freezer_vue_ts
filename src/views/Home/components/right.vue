@@ -92,9 +92,7 @@ const init = () => {
     MainStore.User = res.data
   })
   find(FreezerStore.totalFreezer[0].value, 0, 'Out').then((res) => {
-    if (!res) {
-      return
-    }
+    if (!res) return
     entitiesQuery.value = res
     FreezerStore.totalFreezer[2].value = res.totalElements
   })

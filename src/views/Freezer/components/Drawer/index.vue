@@ -1,5 +1,5 @@
 <template>
-  <el-drawer v-model="FreezerStore.drawer" title="详情" size="50%" destroy-on-close>
+  <el-drawer v-model="FreezerStore.drawer" title="详情" size="1600px" destroy-on-close>
     <div class="title">
       <div class="line">
         <div>资产编码: {{ FreezerStore.chooseRow.name }}</div>
@@ -12,12 +12,10 @@
       <div />
     </div>
     <el-tabs v-model="activeName" class="tabs">
-      <el-tab-pane label="数据概览" name="first" lazy><DrawerPageOne /></el-tab-pane>
-      <el-tab-pane label="设备管理" name="second" lazy><DrawerPageTwo /></el-tab-pane>
+      <el-tab-pane label="设备管理" name="first" lazy><DrawerPageOne /></el-tab-pane>
+      <el-tab-pane label="数据概览" name="second" lazy><DrawerPageTwo /></el-tab-pane>
       <el-tab-pane label="商品销售" name="third" lazy><DrawerPageThree /></el-tab-pane>
       <el-tab-pane label="监控告警" name="fourth" lazy><DrawerPageFour /></el-tab-pane>
-      <el-tab-pane label="维护报修" name="fifth" lazy><DrawerPageFive /></el-tab-pane>
-      <el-tab-pane label="系统设置" name="sixth" lazy><DrawerPageSix /></el-tab-pane>
     </el-tabs>
   </el-drawer>
 </template>
@@ -29,19 +27,10 @@ import DrawerPageOne from './components/DrawerPageOne.vue'
 import DrawerPageTwo from './components/DrawerPageTwo.vue'
 import DrawerPageThree from './components/DrawerPageThree.vue'
 import DrawerPageFour from './components/DrawerPageFour.vue'
-import DrawerPageFive from './components/DrawerPageFive.vue'
-import DrawerPageSix from './components/DrawerPageSix.vue'
 import { ref, defineComponent } from 'vue'
 
 const FreezerStore = useFreezerStore()
 const activeName = ref('first')
-
-// const getDot = () => {
-//   if (!FreezerStore.chooseRow.SHARED_SCOPE) {
-//     return 'greenDot'
-//   }
-//   return FreezerStore.chooseRow.SHARED_SCOPE?.find((item) => item.key === 'active') ? 'green' : 'red'
-// }
 </script>
 
 <script lang="ts">

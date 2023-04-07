@@ -2,7 +2,7 @@
   <el-card>
     <div class="info">
       <div class="title">识别商品</div>
-      <el-form :model="data" class="form" label-width="auto" :rules="rules">
+      <el-form class="form" label-width="auto" :rules="rules">
         <el-form-item prop="name" label="名称">
           {{ data.name }}
         </el-form-item>

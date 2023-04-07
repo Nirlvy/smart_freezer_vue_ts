@@ -2,7 +2,7 @@
   <el-card>
     <div class="info">
       <div class="title">上传商品</div>
-      <el-form :model="data" class="form" label-width="auto" :rules="rules">
+      <el-form class="form" label-width="auto" :rules="rules">
         <el-form-item prop="name" label="名称">
           <el-input v-model="data.name" placeholder="" />
         </el-form-item>

@@ -2,7 +2,7 @@
   <el-drawer v-model="FreezerStore.drawer" title="详情" size="1600px" destroy-on-close>
     <div class="title">
       <div class="line">
-        <div>资产编码: {{ FreezerStore.chooseRow.name }}</div>
+        <div>设备编号: {{ FreezerStore.chooseRow.name }}</div>
         <div v-if="FreezerStore.chooseRow.SCOPE?.find((item) => item.key === 'enable')?.value" class="iconLine ml-10">
           <SvgIcon name="greenDot" style="height: 10px; width: 10px" /> 在线
         </div>

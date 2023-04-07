@@ -22,6 +22,10 @@
   margin-left: 10px;
 }
 
+.mb-5 {
+  margin-bottom: 5px;
+}
+
 .mb-10 {
   margin-bottom: 10px;
 }
@@ -44,4 +48,8 @@
 
 .block {
   display: block;
+}
+
+.el-card {
+  width: 100%;
 }

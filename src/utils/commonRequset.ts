@@ -48,7 +48,7 @@ export const getDevicesInfo = async (deviceIds: string[]) => {
   return res.data
 }
 
-export const getScope = async (device: string, mode: 'page' | 'device' | 'info') => {
+export const getScope = async (deviceId: string, mode: 'page' | 'device' | 'info') => {
   const param = {
     page: ['enable,act', 'check,out,assign,active', 'imei'],
     device: [
@@ -61,7 +61,7 @@ export const getScope = async (device: string, mode: 'page' | 'device' | 'info')
   const keys = '/SHARED_SCOPE?keys=' + param[mode][0]
   const keys2 = '/SERVER_SCOPE?keys=' + param[mode][1]
   const keys3 = '/CLIENT_SCOPE?keys=' + param[mode][2]
-  const url = '/plugins/telemetry/DEVICE/' + device + '/values/attributes'
+  const url = '/plugins/telemetry/DEVICE/' + deviceId + '/values/attributes'
   const res1 = await request.get<scope[] & E>(url + keys)
   if (res1.data.status) {
     return
@@ -78,6 +78,15 @@ export const getScope = async (device: string, mode: 'page' | 'device' | 'info')
     return
   }
   return res1.data.concat(res2.data).concat(res3.data)
+}
+
+export const changeScope = async (deviceId: string, mode: 'temp', value: number) => {
+  const param = {
+    temp: ['base.core.frhCtrl.temp.set'],
+  }
+  const url = '/plugins/telemetry/DEVICE/' + deviceId + '/SHARED_SCOPE'
+  const res = await request.post(url, { [param[mode][0]]: value })
+  return res.data
 }
 
 export const devicesOperate = async (deviceIds: string, operate: 'export' | 'enable' | 'disable' | 'delete') => {
@@ -452,11 +461,12 @@ export const getDeviceProfile = async (deviceId: string) => {
 //   const res =await request.get
 // }
 
-export const modeSwitch = async (deviceId: string, value: number, mode: 'work' | 'run') => {
+export const modeSwitch = async (deviceId: string, value: number, mode: 'work' | 'run' | 'light') => {
   const url = '/plugins/telemetry/DEVICE/' + deviceId + '/SHARED_SCOPE'
   const modeChoice = {
     work: { 'base.core.frhCtrl.mode': value },
     run: { 'base.core.frhCtrl.type': value },
+    light: { 'base.core.light.frLight.switch': value },
   }
   const res = await request.post(url, modeChoice[mode])
   return res.data

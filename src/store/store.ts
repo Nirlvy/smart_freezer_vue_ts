@@ -8,7 +8,7 @@ export const useMainStore = defineStore('main', {
     Jwt: {} as JWT,
     User: {} as USER,
     dialog: false,
-    imgBase64: '',
+    imgBase64: [] as string[],
   }),
   persist: {
     enabled: true,

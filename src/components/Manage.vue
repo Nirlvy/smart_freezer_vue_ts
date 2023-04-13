@@ -29,6 +29,8 @@ import Breadcrumb from './Breadcrumb.vue'
 import { useFreezerStore, useMainStore } from '@/store/store'
 import mqtt from 'paho-mqtt'
 import MqttDialog from './MqttDialog.vue'
+import { ElNotification } from 'element-plus'
+import { h } from 'vue'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
@@ -139,7 +141,7 @@ const WebSocketAPI = () => {
 }
 
 const mqttAPI = () => {
-  const client = new mqtt.Client('broker.emqx.io', 8083, 'nirlvy')
+  const client = new mqtt.Client('8.130.47.235', 8000, 'nirlvy')
   client.onConnectionLost = (responseObject) => {
     if (responseObject.errorCode !== 0) {
       console.log('MQTT连接已断开：' + responseObject.errorMessage)
@@ -147,13 +149,30 @@ const mqttAPI = () => {
   }
   client.connect({
     onSuccess: () => {
-      client.subscribe('mooc12345')
+      client.subscribe('realtime')
     },
-    keepAliveInterval: 10,
+    keepAliveInterval: 60,
   })
   client.onMessageArrived = (message) => {
-    MainStore.imgBase64 = 'data:image/jpeg;base64,' + message.payloadString
-    MainStore.dialog = true
+    MainStore.imgBase64 = ['data:image/jpeg;base64,' + message.payloadString.split('-')[0], message.payloadString.split('-')[1].split(/\s+/)[2]]
+    ElNotification({
+      title: '一个新售出',
+      dangerouslyUseHTMLString: true,
+      duration: 10000,
+      message: h('p', [
+        '售出了' + ' ' + MainStore.imgBase64[1] + ' ',
+        h(
+          'el-button',
+          {
+            style: { color: '#409EFF' },
+            onclick: () => {
+              MainStore.dialog = true
+            },
+          },
+          '点击查看'
+        ),
+      ]),
+    })
   }
 }
 

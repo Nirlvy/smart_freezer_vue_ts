@@ -73,8 +73,8 @@
           {{ getThirdButton(scope.row.SCOPE) }}
         </el-button>
         <el-divider direction="vertical" />
-        <el-button :type="scope.row.SCOPE?.find((item) => item.key === 'enable')?.value ? 'danger' : 'primary'" size="small" plain>
-          {{ scope.row.SCOPE?.find((item) => item.key === 'enable')?.value ? '停用' : '启用' }}
+        <el-button :type="getEnable(scope.row.SCOPE) ? 'primary' : 'danger'" size="small" plain>
+          {{ getEnable(scope.row.SCOPE) ? '启用' : '停用' }}
         </el-button>
         <el-divider direction="vertical" />
         <el-button type="danger" size="small" plain>注销</el-button>
@@ -134,7 +134,11 @@ const handleGetSharedScope = () => {
       if (!res) {
         return
       }
-      item.SCOPE = res
+      console.log(res)
+      item.SCOPE = res.reduce((acc, { key, value }) => {
+        acc[key] = value
+        return acc
+      }, {})
     })
   })
 }
@@ -216,65 +220,60 @@ watch(
   }
 )
 
-const getImei = (scope: scope[] | undefined) => {
-  if (scope) {
-    return scope.find((item) => item.key === 'imei')?.value
+const getImei = (scope: SCOPE | undefined) => {
+  if (scope && 'imei' in scope) {
+    return scope.imei || ''
   }
 }
 
-const getColor = (scope: scope[] | undefined) => {
-  if (scope) {
-    return scope.find((item) => item.key === 'active')?.value ? 'green' : 'red'
+const getColor = (scope: SCOPE | undefined) => {
+  if (scope && 'active' in scope) {
+    return scope.active ? 'green' : 'red'
   } else {
     return 'gray'
   }
 }
 
-const getEnable = (scope: scope[] | undefined) => {
-  if (scope) {
-    return scope.find((item) => item.key === 'enable')?.value ? false : true
+const getEnable = (scope: SCOPE | undefined) => {
+  if (scope && 'enable' in scope) {
+    return scope.enable ? false : true
   }
+  return true
 }
 
-const getRelease = (scope: scope[] | undefined) => {
+const getRelease = (scope: SCOPE | undefined) => {
   if (!scope) {
     return
   }
   if (FreezerStore.freezerCard === '全部设备') {
-    return scope.find((item) => item.key === 'out')?.value ? '投放' : scope.find((item) => item.key === 'assign') ? '待投放' : '回库'
-  } else if (FreezerStore.freezerCard === '在库设备') {
-    return scope.find((item) => item.key === 'check')?.value ? '回库' : '待检验'
-  } else {
-    return scope.find((item) => item.key === 'out')?.value ? '投放' : '待投放'
+    if ('out' in scope && 'check' in scope) {
+      return scope.out ? '投放' : scope.check ? '回库' : '待检验'
+    }
+    if ('check' in scope) {
+      return scope.check ? '待投放' : ''
+    }
+    return ''
   }
 }
 
-const getSecondButton = (scope: scope[] | undefined) => {
+const getSecondButton = (scope: SCOPE | undefined) => {
   if (!scope) {
     return
   }
-  switch (FreezerStore.freezerCard) {
-    case '全部设备':
-      return '激活'
-    case '在库设备':
-      return scope.find((item) => item.key === 'check')?.value ? '激活' : '检验'
-    case '在店设备':
-      return '激活'
+  if ('check' in scope && scope.check) {
+    return '激活'
   }
+  return '检验'
 }
 
-const getThirdButton = (scope: scope[] | undefined) => {
+const getThirdButton = (scope: SCOPE | undefined) => {
   if (!scope) {
     return
   }
-  switch (FreezerStore.freezerCard) {
-    case '全部设备':
-      return scope.find((item) => item.key === 'enable')?.value ? '解绑' : '分配'
-    case '在库设备':
-      return '分配'
-    case '在店设备':
-      return '解绑'
+  if ('assign' in scope && !scope.assign) {
+    return '分配'
   }
+  return '解绑'
 }
 
 const handleCommand = async (command: string) => {

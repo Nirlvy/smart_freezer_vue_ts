@@ -44,8 +44,8 @@ const user = reactive({
 const MianStore = useMainStore()
 const router = useRouter()
 const rules = reactive<FormRules>({
-  userName: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
+  username: [
+    { required: true, message: '请输入邮箱或者用户名', trigger: 'blur' },
     { min: 1, max: 30, message: '长度应该为1到30位', trigger: 'blur' },
   ],
   password: [

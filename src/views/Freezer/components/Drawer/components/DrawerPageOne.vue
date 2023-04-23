@@ -31,7 +31,11 @@
         </el-col>
         <el-col :span="5" class="center">
           <div>
-            <el-button type="success" :disabled="Boolean(FreezerStore.chooseRow.SCOPE?.find((item) => item.key === 'enable')?.value)">激活</el-button>
+            <el-button
+              type="success"
+              :disabled="Boolean(FreezerStore.chooseRow.SCOPE && 'enable' in FreezerStore.chooseRow.SCOPE && !FreezerStore.chooseRow.SCOPE.enable)"
+              >激活</el-button
+            >
             <el-button type="primary">解绑</el-button>
             <el-button type="success">撤柜</el-button>
             <el-button type="danger">停用</el-button>
@@ -129,7 +133,9 @@
                   <el-form>
                     <el-form-item label="控制器编码:">{{ data.devSN }}­</el-form-item>
                     <el-form-item label="资产编码:">{{}}­</el-form-item>
-                    <el-form-item label="IMEI编码:">{{ FreezerStore.chooseRow.SCOPE ? FreezerStore.chooseRow.SCOPE[6].value : '' }}­</el-form-item>
+                    <el-form-item label="IMEI编码:">
+                      {{ 'imei' in FreezerStore.chooseRow.SCOPE ? FreezerStore.chooseRow.SCOPE.imei : '' }}­
+                    </el-form-item>
                     <el-form-item label="生产编码:">{{}}­</el-form-item>
                   </el-form>
                 </div>
@@ -181,15 +187,14 @@
 
 <script setup lang="ts">
 import { useFreezerStore, useMainStore } from '@/store/store'
-import { changeScope, getDeviceProfile, getScope, modeSwitch } from '@/utils/commonRequset'
+import { changeScope, getScope, modeSwitch } from '@/utils/commonRequset'
 import { InfoFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import AMapLoader from '@amap/amap-jsapi-loader'
 
 const FreezerStore = useFreezerStore()
 const MainStore = useMainStore()
-// const profile = ref<deviceProfile>()
 const info = ref<scope[]>()
 const workMode = ['制冷', '制热', '冷热']
 const workModeNum = ref('')
@@ -217,21 +222,13 @@ const data = reactive({
   devSN: '',
 })
 
-onMounted(() => {
-  setTimeout(() => init(), 1)
-})
-
 const init = async () => {
   WebSocketAPI()
-  // await getDeviceProfile(FreezerStore.chooseRow.deviceProfileId.id).then((res) => {
-  //   if (!res) return
-  //   profile.value = res
-  //   console.log(profile.value)
-  // })
   await getScope(FreezerStore.chooseRow.id.id, 'info').then((res) => {
     if (!res) return
     info.value = res
   })
+  console.log(info.value)
   workModeNum.value = workMode[Number(info.value?.find((item) => item.key === 'base.core.frhCtrl.mode')?.value)]
   runModeNum.value = runMode[Number(info.value?.find((item) => item.key === 'base.core.frhCtrl.type')?.value)]
   lightModeNum.value = lightMode[Number(info.value?.find((item) => item.key === 'base.core.light.frLight.switch')?.value)]
@@ -297,6 +294,7 @@ const WebSocketAPI = () => {
     }
   }
 }
+init()
 
 const initMap = () => {
   AMapLoader.load({
@@ -370,7 +368,7 @@ const modeChange = (mode: 'work' | 'run' | 'light') => {
 }
 
 const tempSetChange = (temp: number) => {
-  changeScope(FreezerStore.chooseRow.id.id, 'temp', temp).then((res) => {
+  changeScope(FreezerStore.chooseRow.id.id, 'temp', 'SHARED', temp).then((res) => {
     if (res === '') {
       ElMessage.success('修改成功')
     }

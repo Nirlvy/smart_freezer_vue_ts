@@ -1,5 +1,9 @@
 import { ElMessage } from 'element-plus'
 import request from './request'
+import { useFreezerStore, useMainStore } from '@/store/store'
+
+const MainStore = useMainStore()
+const FreezerStore = useFreezerStore()
 
 export const requestPage = async (
   pageSize: number,
@@ -80,16 +84,18 @@ export const getScope = async (deviceId: string, mode: 'page' | 'device' | 'info
   return res1.data.concat(res2.data).concat(res3.data)
 }
 
-export const changeScope = async (deviceId: string, mode: 'temp', value: number) => {
+export const changeScope = async (deviceId: string, mode: string, scope: 'SHARED' | 'SERVER', value: number) => {
   const param = {
     temp: ['base.core.frhCtrl.temp.set'],
+    check: ['check'],
+    act: ['act'],
   }
-  const url = '/plugins/telemetry/DEVICE/' + deviceId + '/SHARED_SCOPE'
+  const url = '/plugins/telemetry/DEVICE/' + deviceId + '/' + scope + '_SCOPE'
   const res = await request.post(url, { [param[mode][0]]: value })
   return res.data
 }
 
-export const devicesOperate = async (deviceIds: string, operate: 'export' | 'enable' | 'disable' | 'delete') => {
+export const devicesOperate = async (deviceIds: string, operate: string) => {
   const sharedEnable = { enable: 1 }
   const sharedDisabled = { enable: 0 }
   const serverEnable = {
@@ -433,7 +439,7 @@ export const getDeviceCharts = async (deviceId: string, time: number[]) => {
     }
   })
   const res = await Promise.all(promises)
-  return res
+  return res.filter((item) => Boolean(item)) as { [x: string]: any }[]
 }
 
 export const getTime = (time: number) => {
@@ -470,4 +476,43 @@ export const modeSwitch = async (deviceId: string, value: number, mode: 'work' |
   }
   const res = await request.post(url, modeChoice[mode])
   return res.data
+}
+
+export const updateDevice = async () => {
+  const row = FreezerStore.chooseRow
+  if (row.deviceName === '无') {
+    row.deviceName = ''
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { SCOPE, ...UpdateDevice } = Object.assign({}, FreezerStore.chooseRow.SCOPE, row)
+  const res = await request.post<deviceInfo & E>('/device', UpdateDevice)
+  if (res.data.status) {
+    return
+  }
+  return res.data
+}
+
+export const refreshToken = async () => {
+  const res = await request.post<LoginData & E>('/auth/token', { refreshToken: MainStore.Login.refreshToken })
+  if (res.data.status) {
+    return
+  }
+  MainStore.Login = res.data
+  return true
+}
+
+export const getCustomerName = async () => {
+  const customerName = await request.get<customerName[] & E>('/organizationGroup/getAllTopAndCustomerName')
+  if (customerName.data.status) {
+    return
+  }
+  const promises = customerName.data.map(async (item) => {
+    const response = await request.get<customerName & E>('/organizationGroup/getAllTree/' + item.id.id + '/customerName')
+    if (response.data.status) {
+      return
+    }
+    return response.data
+  })
+  const res = await Promise.all(promises)
+  return res.filter((item) => Boolean(item)) as (customerName & E)[]
 }

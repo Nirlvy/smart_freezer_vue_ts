@@ -28,7 +28,7 @@ type deviceInfo = {
   }
   name: string
   type: string
-  label: null
+  label: string
   deviceProfileId: {
     entityType: string
     id: string
@@ -41,20 +41,20 @@ type deviceInfo = {
       type: string
     }
   }
-  deviceName: null
-  firmwareId: null
-  softwareId: null
-  modelwareId: null
-  featurewareId: null
-  pfwareId: null
-  address: null
-  longitude: null
-  latitude: null
-  templateDetails: null
-  customerTitle: null
+  deviceName: string
+  firmwareId: string
+  softwareId: string
+  modelwareId: string
+  featurewareId: string
+  pfwareId: string
+  address: string
+  longitude: string
+  latitude: string
+  templateDetails: string
+  customerTitle: string
   customerIsPublic: boolean
   deviceProfileName: string
-  SCOPE?: SCOPE
+  SCOPE: SCOPE
 }
 
 type deviceInfos = {
@@ -579,4 +579,22 @@ type otaPackage = {
       saleResult: '0,3,a'
     }
   }
+}
+
+type customerName = {
+  id: {
+    entityType: string
+    id: string
+  }
+  customerId: {
+    entityType: string
+    id: string
+  }
+  parentId: {
+    entityType: string
+    id: string
+  }
+  catPath: string
+  children: null | customerName[]
+  customerName: null | string
 }

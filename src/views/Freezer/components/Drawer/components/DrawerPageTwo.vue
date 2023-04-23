@@ -75,7 +75,6 @@ const initEcharts = async () => {
         {
           name: title[i],
           data: res
-            .filter((obj): obj is chart & E => Boolean(obj))
             .filter((obj) => Object.keys(obj)[0] === param[i])
             .map((obj) => obj[param[i]])
             .flat()

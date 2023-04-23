@@ -84,8 +84,8 @@ const colors = [
   { color: '#6f7ad3', percentage: 100 },
 ]
 
-const init = () => {
-  request.get<USER & E>('/user/' + MainStore.Jwt.userId).then((res) => {
+const init = async () => {
+  await request.get<USER & E>('/user/' + MainStore.Jwt.userId).then((res) => {
     if (res.data.status) {
       return
     }

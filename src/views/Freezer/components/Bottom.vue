@@ -36,10 +36,18 @@
   <el-table :data="data.tableData" size="large" @selection-change="handleSelectionChange" @row-click="handleRowClick">
     <el-table-column fixed="left" type="selection" />
     <el-table-column prop="name" label="资产编码" min-width="140" />
-    <el-table-column prop="deviceName" label="设备名称" min-width="100" />
+    <el-table-column prop="deviceName" label="设备名称" min-width="160">
+      <template #default="scope">
+        <el-button v-if="!nameSet" type="primary" link @click="nameSet = !nameSet">{{ scope.row.deviceName }}­</el-button>
+        <span v-else>
+          <el-input v-model="scope.row.deviceName" style="width: 70px" />
+          <el-button class="ml-10" type="primary" size="small" @click="nameSave">确定</el-button>
+        </span>
+      </template>
+    </el-table-column>
     <el-table-column label="IMEI" min-width="150">
       <template #default="scope">
-        {{ getImei(scope.row.SCOPE) }}
+        {{ rowData.getRowData(scope.row.SCOPE)?.imei }}
       </template>
     </el-table-column>
     <el-table-column prop="address" label="设备地址" min-width="200" show-overflow-tooltip />
@@ -52,59 +60,73 @@
     </el-table-column>
     <el-table-column fixed="right" label="状态" width="150">
       <template #default="scope">
-        <el-icon :color="getColor(scope.row.SCOPE)">
+        <el-icon :color="rowData.getRowData(scope.row.SCOPE)?.color">
           <Link />
         </el-icon>
-        <el-icon v-if="getEnable(scope.row.SCOPE)" class="ml-5">
+        <el-icon v-if="rowData.getRowData(scope.row.SCOPE)?.enable" class="ml-5">
           <Lock />
         </el-icon>
-        <span class="ml-5">{{ getRelease(scope.row.SCOPE) }}</span>
+        <span class="ml-5">{{ rowData.getRowData(scope.row.SCOPE)?.release }}</span>
       </template>
     </el-table-column>
     <el-table-column fixed="right" prop="shelves" label="操作" width="350">
       <template #default="scope">
-        <el-button size="small" @click="FreezerStore.drawer = true">详情</el-button>
+        <el-button size="small" @click="openDrawer">详情</el-button>
         <el-divider direction="vertical" />
-        <el-button type="primary" size="small" plain>
-          {{ getSecondButton(scope.row.SCOPE) }}
+        <el-button type="primary" size="small" :disabled="rowData.getRowData(scope.row.SCOPE)?.secondButtonDisable" plain @click="secondClick">
+          {{ rowData.getRowData(scope.row.SCOPE)?.secondButton }}
         </el-button>
         <el-divider direction="vertical" />
-        <el-button type="primary" size="small" plain>
-          {{ getThirdButton(scope.row.SCOPE) }}
+        <el-button type="primary" size="small" :disabled="rowData.getRowData(scope.row.SCOPE)?.thirdButtonDisable" plain @click="thirdClick">
+          {{ rowData.getRowData(scope.row.SCOPE)?.thirdButton }}
         </el-button>
         <el-divider direction="vertical" />
-        <el-button :type="getEnable(scope.row.SCOPE) ? 'primary' : 'danger'" size="small" plain>
-          {{ getEnable(scope.row.SCOPE) ? '启用' : '停用' }}
+        <el-button :type="rowData.getRowData(scope.row.SCOPE)?.enable ? 'primary' : 'danger'" size="small" plain @click="fourthClick">
+          {{ rowData.getRowData(scope.row.SCOPE)?.enable ? '启用' : '停用' }}
         </el-button>
         <el-divider direction="vertical" />
         <el-button type="danger" size="small" plain>注销</el-button>
       </template>
     </el-table-column>
   </el-table>
-  <div class="ml-10 pu-10">
-    <el-pagination
-      v-model:current-page="data.currentPage"
-      v-model:page-size="data.pageSize"
-      :page-sizes="[5, 10, 20]"
-      :background="true"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="data.total"
-      @size-change="tableInit"
-      @current-change="tableInit"
-    />
-  </div>
+  <el-pagination
+    v-model:current-page="data.currentPage"
+    v-model:page-size="data.pageSize"
+    class="ml-10 pu-10"
+    :page-sizes="[5, 10, 20]"
+    :background="true"
+    layout="total, sizes, prev, pager, next, jumper"
+    :total="data.total"
+    @size-change="tableInit"
+    @current-change="tableInit"
+  />
   <Drawer />
+  <el-dialog v-model="dialog" title="Tips" width="400px">
+    <el-form v-if="dialogValue.choose === 'distribution'">
+      <el-form-item label="组织机构:"><el-cascader v-model="formValue.org" :options="options" /></el-form-item>
+      <el-form-item label="运维人员:"><el-cascader v-model="formValue.ope" :options="options" /></el-form-item>
+      <el-form-item label="业务人员:"><el-cascader v-model="formValue.bus" :options="options" /></el-form-item>
+      <el-form-item label="店主:"><el-cascader v-model="formValue.shop" :options="options" /></el-form-item>
+    </el-form>
+    <span v-else>{{ dialogValue[dialogValue.choose].title }} </span>
+    <template #footer>
+      <span>
+        <el-button type="danger" @click="dialog = false">{{ dialogValue[dialogValue.choose].cancel }}</el-button>
+        <el-button type="primary" @click="comfirmActivate">{{ dialogValue[dialogValue.choose].confirm }}</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { useFreezerStore } from '@/store/store'
-import { requestPage, getScope, devicesOperate, find, getDevicesInfo } from '@/utils/commonRequset'
+import { requestPage, getScope, devicesOperate, find, getDevicesInfo, updateDevice, getCustomerName } from '@/utils/commonRequset'
 import { Link, Lock, ArrowDown, Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { reactive, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import Drawer from './Drawer/index.vue'
+import { changeScope } from '@/utils/commonRequset'
 
-// const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
 const data = reactive({
   tableData: [] as deviceInfo[],
@@ -116,17 +138,38 @@ const data = reactive({
   select: '',
   input: '',
 })
-// const object = {
-//   tsSubCmds: [
-//     {
-//       entityType: 'DEVICE',
-//       entityId: '009ef0c0-22fd-11ed-b8d0-f97a4e0c2279',
-//       scope: 'LATEST_TELEMETRY',
-//       keys: 'base.comm.pos.addr',
-//       cmdId: 1,
-//     },
-//   ],
-// }
+const nameSet = ref(false)
+const dialog = ref(false)
+const dialogValue = reactive({
+  choose: '',
+  check: {
+    title: '请确认检验是否合格',
+    cancel: '不合格',
+    confirm: '合格',
+  },
+  act: {
+    title: '你确定要激活该设备吗?',
+    cancel: '取消',
+    confirm: '确定',
+  },
+  enable: {
+    title: '你确定要启用该设备吗?',
+    cancel: '取消',
+    confirm: '确定',
+  },
+  disable: {
+    title: '你确定要停用该设备吗?',
+    cancel: '取消',
+    confirm: '确定',
+  },
+})
+const formValue = reactive({
+  org: [],
+  ope: [],
+  bus: [],
+  shop: [],
+})
+const chooseValue = ref<Option>()
 
 const handleGetSharedScope = () => {
   data.tableData.forEach((item) => {
@@ -134,7 +177,6 @@ const handleGetSharedScope = () => {
       if (!res) {
         return
       }
-      console.log(res)
       item.SCOPE = res.reduce((acc, { key, value }) => {
         acc[key] = value
         return acc
@@ -143,41 +185,17 @@ const handleGetSharedScope = () => {
   })
 }
 
-// const WebSocketAPI = () => {
-//   var token = MainStore.Login.token
-//   var webSocket = new WebSocket('ws://124.222.184.107/api/ws/plugins/telemetry?token=' + token)
-//   webSocket.onopen = function () {
-//     var data = JSON.stringify(object)
-//     webSocket.send(data)
-//   }
-//   webSocket.onmessage = function (event) {
-//     var received_msg = JSON.parse(event.data)
-//     console.log(received_msg)
-//     // switch (received_msg.cmdId) {
-//     //   case 1:
-//     //     FreezerStore.totalFreezer[1].value = received_msg.count
-//     //     break
-//     //   case 2:
-//     //     FreezerStore.totalFreezer[0].value = FreezerStore.totalFreezer[1].value + received_msg.count
-//     //     break
-//     //   case 3:
-//     //     FreezerStore.totalFreezer[3].value = FreezerStore.totalFreezer[0].value - received_msg.count
-//     //     break
-//     // }
-//   }
-//   // webSocket.onclose = function () {
-//   //   console.log('Connection is closed!')
-//   // }
-// }
-// WebSocketAPI()
-
 const tableInit = () => {
   if (FreezerStore.freezerCard === '全部设备') {
     requestPage(data.pageSize, data.currentPage, false).then((res) => {
       if (!res) {
         return
       }
-      data.tableData = res.data
+      const newData = res.data.map((item) => ({
+        ...item,
+        deviceName: item.deviceName === null || item.deviceName === '' ? '无' : item.deviceName,
+      }))
+      data.tableData = newData
       data.total = res.totalElements
       handleGetSharedScope()
     })
@@ -220,60 +238,39 @@ watch(
   }
 )
 
-const getImei = (scope: SCOPE | undefined) => {
-  if (scope && 'imei' in scope) {
-    return scope.imei || ''
-  }
-}
+const rowData = computed(() => {
+  return { getRowData }
+})
 
-const getColor = (scope: SCOPE | undefined) => {
-  if (scope && 'active' in scope) {
-    return scope.active ? 'green' : 'red'
-  } else {
-    return 'gray'
-  }
-}
-
-const getEnable = (scope: SCOPE | undefined) => {
-  if (scope && 'enable' in scope) {
-    return scope.enable ? false : true
-  }
-  return true
-}
-
-const getRelease = (scope: SCOPE | undefined) => {
+const getRowData = (scope: SCOPE | undefined) => {
   if (!scope) {
     return
   }
-  if (FreezerStore.freezerCard === '全部设备') {
-    if ('out' in scope && 'check' in scope) {
-      return scope.out ? '投放' : scope.check ? '回库' : '待检验'
-    }
-    if ('check' in scope) {
-      return scope.check ? '待投放' : ''
-    }
-    return ''
-  }
-}
-
-const getSecondButton = (scope: SCOPE | undefined) => {
-  if (!scope) {
-    return
-  }
-  if ('check' in scope && scope.check) {
-    return '激活'
-  }
-  return '检验'
-}
-
-const getThirdButton = (scope: SCOPE | undefined) => {
-  if (!scope) {
-    return
-  }
-  if ('assign' in scope && !scope.assign) {
-    return '分配'
-  }
-  return '解绑'
+  const imei = 'imei' in scope ? scope.imei : ''
+  const color = 'active' in scope ? (scope.active ? 'green' : 'red') : 'gray'
+  const enable = 'enable' in scope ? !scope.enable : true
+  const out = 'out' in scope ? scope.out : undefined
+  const act = 'act' in scope ? scope.act : undefined
+  const check = 'check' in scope ? scope.check : undefined
+  const release =
+    out != undefined && check != undefined && act != undefined
+      ? out
+        ? '投放'
+        : check
+        ? act
+          ? '回库'
+          : '待激活'
+        : '待检验'
+      : check != undefined
+      ? check && act != undefined
+        ? '待投放'
+        : ''
+      : ''
+  const secondButton = 'check' in scope && scope.check ? '激活' : '检验'
+  const secondButtonDisable = release != '待激活' && release != '待检验'
+  const thirdButton = 'assign' in scope && !scope.assign ? '分配' : '解绑'
+  const thirdButtonDisable = release != '回库'
+  return { imei, color, enable, release, secondButton, secondButtonDisable, thirdButton, thirdButtonDisable }
 }
 
 const handleCommand = async (command: string) => {
@@ -368,6 +365,105 @@ const search = () => {
       })
       break
   }
+}
+
+const openDrawer = () => {
+  setTimeout(() => {
+    FreezerStore.drawer = true
+  }, 1)
+}
+
+const nameSave = () => {
+  setTimeout(() => {
+    updateDevice().then((res) => {
+      if (res) {
+        ElMessage.success('修改成功')
+      }
+    })
+    nameSet.value = false
+  }, 1)
+}
+
+const comfirmActivate = () => {
+  dialog.value = false
+  if (dialogValue.choose === 'check' || dialogValue.choose === 'act') {
+    changeScope(FreezerStore.chooseRow.id.id, dialogValue.choose, dialogValue.choose === 'check' ? 'SERVER' : 'SHARED', 1).then((res) => {
+      if (res === '') {
+        ElMessage.success('修改成功')
+      }
+      FreezerStore.chooseRow.SCOPE = { ...FreezerStore.chooseRow.SCOPE, [dialogValue.choose]: 1 }
+    })
+  } else {
+    devicesOperate(FreezerStore.chooseRow.id.id, dialogValue.choose).then((res) => {
+      if (res === '') {
+        ElMessage.success('修改成功')
+      }
+      FreezerStore.chooseRow.SCOPE = { ...FreezerStore.chooseRow.SCOPE, enable: dialogValue.choose === 'enable' ? 1 : 0 }
+    })
+  }
+}
+
+const secondClick = (event) => {
+  const text = event.target.textContent
+  if (text === '检验') {
+    dialogValue.choose = 'check'
+  } else {
+    dialogValue.choose = 'act'
+  }
+  dialog.value = true
+}
+
+function convertToOptions(data: (customerName & E)[]): Option[] {
+  const options: Option[] = []
+  for (const item of data) {
+    const option: Option = {
+      value: item.customerName ?? '',
+      label: item.customerName ?? '',
+    }
+    if (item.children) {
+      option.children = convertToOptions(item.children)
+    }
+    options.push(option)
+  }
+  return options
+}
+
+const thirdClick = (event) => {
+  const text = event.target.textContent
+  if (text === '分配') {
+    getCustomerName().then((res) => {
+      if (res) {
+        for (const item of res) {
+          const option: Option = {
+            value: item.customerName ?? '',
+            label: item.customerName ?? '',
+          }
+          if (item.children) {
+            option.children = convertToOptions(item.children)
+          }
+          options.push(option)
+        }
+        chooseValue.value = res.map((item) => {
+          return {
+            customerName: item.customerName,
+            children: item.children,
+          }
+        })
+        dialogValue.choose = 'distribution'
+        dialog.value = true
+      }
+    })
+  }
+}
+
+const fourthClick = (event) => {
+  const text = event.target.textContent
+  if (text === '启用') {
+    dialogValue.choose = 'enable'
+  } else {
+    dialogValue.choose = 'disable'
+  }
+  dialog.value = true
 }
 </script>
 

@@ -6,6 +6,12 @@ type E = {
   resetToken?: string
 }
 
+type R = {
+  code: number
+  msg: string
+  data: any
+}
+
 type LoginData = {
   token: string
   refreshToken: string
@@ -127,7 +133,7 @@ type sortOrder = {
 type scope = {
   lastUpdateTs: number
   key: string
-  value: number | boolean
+  value: number | boolean | string
 }
 
 type SCOPE = { [key in scopeKey]: number | boolean }
@@ -597,4 +603,23 @@ type customerName = {
   catPath: string
   children: null | customerName[]
   customerName: null | string
+}
+
+type deviceProfileInfos = {
+  data: [
+    {
+      id: {
+        entityType: string
+        id: string
+      }
+      name: string
+      image: string
+      defaultDashboardId: string
+      type: string
+      transportType: string
+    }
+  ]
+  totalPages: number
+  totalElements: number
+  hasNext: boolean
 }

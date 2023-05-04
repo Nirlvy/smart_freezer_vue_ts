@@ -11,7 +11,7 @@
               <el-form-item label="生产厂家:">{{ info?.find((item) => item.key === 'manu')?.value }}</el-form-item>
               <el-form-item label="售后服务:">{{ info?.find((item) => item.key === 'servProv')?.value }}</el-form-item>
               <el-form-item label="资产所有:">{{ info?.find((item) => item.key === 'own')?.value }}</el-form-item>
-              <el-form-item label="投放地址:">{{ FreezerStore.chooseRow.address }}</el-form-item>
+              <el-form-item label="投放地址:">{{}}</el-form-item>
               <el-form-item label="当前地址:">{{ FreezerStore.chooseRow.address }}</el-form-item>
             </el-form>
           </div>
@@ -47,7 +47,7 @@
             </el-radio-group>
           </div>
           <div>
-            <div>工作模式选择</div>
+            <div>运行模式选择</div>
             <el-radio-group v-model="runModeNum" @change="modeChange('run')">
               <el-radio-button v-for="item in runMode" :key="item" :label="item" />
             </el-radio-group>
@@ -69,7 +69,7 @@
                 </span>
                 <div class="minicard">
                   <div class="half">
-                    <el-form>
+                    <el-form class="ml-10">
                       <el-form-item label="柜内温度:">{{ data.temp }}­°C</el-form-item>
                       <el-form-item label="环境温度:">{{ data.temp2 }}­°C</el-form-item>
                       <el-form-item label="蒸发温度:">{{ data.temp3 }}­°C</el-form-item>
@@ -81,7 +81,7 @@
                       设置：
                       <el-button type="primary" link @click="data.tempSet = !data.tempSet">{{ data.tempSetValue }}­°C</el-button>
                     </span>
-                    <el-slider v-show="data.tempSet" v-model="data.tempSetValue" :step="0.5" :max="10" @change="tempSetChange" />
+                    <el-slider v-show="data.tempSet" v-model="data.tempSetValue" :step="0.5" :min="-10" :max="10" @change="tempSetChange" />
                   </div>
                 </div>
               </el-card>
@@ -129,34 +129,40 @@
                 <span>
                   <el-icon color="#F7B500"><InfoFilled /></el-icon> 设备编码
                 </span>
-                <div class="minicard">
-                  <el-form>
-                    <el-form-item label="控制器编码:">{{ data.devSN }}­</el-form-item>
-                    <el-form-item label="资产编码:">{{}}­</el-form-item>
-                    <el-form-item label="IMEI编码:">
-                      {{ 'imei' in FreezerStore.chooseRow.SCOPE ? FreezerStore.chooseRow.SCOPE.imei : '' }}­
-                    </el-form-item>
-                    <el-form-item label="生产编码:">{{}}­</el-form-item>
-                  </el-form>
-                </div>
+                <el-form class="ml-10">
+                  <el-form-item label="控制器编码:">{{ data.devSN }}­</el-form-item>
+                  <el-form-item label="资产编码:">
+                    <el-button v-if="!data.nameSet" type="primary" link @click="data.nameSet = !data.nameSet"> {{ data.assID }}­ </el-button>
+                    <span v-else>
+                      <el-input v-model="data.assID" style="width: 150px" />
+                      <el-button class="ml-10" type="primary" @click="nameSave">确定</el-button>
+                    </span>
+                  </el-form-item>
+                  <el-form-item label="IMEI编码:">
+                    {{ 'imei' in FreezerStore.chooseRow.SCOPE ? FreezerStore.chooseRow.SCOPE.imei : '' }}­
+                  </el-form-item>
+                  <el-form-item label="生产编码:">
+                    <el-button v-if="!data.facCodeSet" type="primary" link @click="data.facCodeSet = !data.facCodeSet">
+                      {{ data.facCode }}­
+                    </el-button>
+                    <span v-else>
+                      <el-input v-model="data.facCode" style="width: 150px" />
+                      <el-button class="ml-10" type="primary" @click="facCodeSave">确定</el-button>
+                    </span>
+                    ­</el-form-item
+                  >
+                </el-form>
               </el-card>
             </el-col>
             <el-col :span="10">
               <el-card>
-                <div class="minicard">
-                  <div class="half">
-                    <span>
-                      <el-icon color="#5B76F9"><InfoFilled /></el-icon> 基础模组
-                    </span>
-                    <el-form>
-                      <el-form-item label="主程序版本:">{{ data.ctrlVer }}­</el-form-item>
-                      <el-form-item label="控制逻辑版本:">{{ data.lctrlVer }}­</el-form-item>
-                    </el-form>
-                  </div>
-                  <div class="half">
-                    <span> 智能模组 </span>
-                  </div>
-                </div>
+                <span>
+                  <el-icon color="#5B76F9"><InfoFilled /></el-icon> 基础模组
+                </span>
+                <el-form class="ml-10">
+                  <el-form-item label="主程序版本:">{{ data.ctrlVer }}­</el-form-item>
+                  <el-form-item label="控制逻辑版本:">{{ data.lctrlVer }}­</el-form-item>
+                </el-form>
               </el-card>
             </el-col>
             <el-col :span="5">
@@ -164,20 +170,25 @@
                 <span>
                   <el-icon color="#C972F2"><InfoFilled /></el-icon> 通讯
                 </span>
-                <div class="minicard">
-                  <el-form>
-                    <el-form-item label="4G:">{{}}­</el-form-item>
-                    <el-form-item label="wifi:">{{}}­</el-form-item>
-                    <el-form-item label="Ble:">{{}}­</el-form-item>
-                  </el-form>
-                </div>
+                <el-form class="ml-10">
+                  <el-form-item label="4G:">
+                    <span v-if="'active' in FreezerStore.chooseRow.SCOPE && FreezerStore.chooseRow.SCOPE.active">使用</span>
+                  </el-form-item>
+                  <el-form-item label="wifi:">
+                    <span v-if="'active' in FreezerStore.chooseRow.SCOPE && FreezerStore.chooseRow.SCOPE.active">待机</span>­
+                  </el-form-item>
+                  <el-form-item label="Ble:">
+                    <span v-if="'active' in FreezerStore.chooseRow.SCOPE && FreezerStore.chooseRow.SCOPE.active">待机</span>
+                    ­</el-form-item
+                  >
+                </el-form>
               </el-card>
             </el-col>
           </el-row>
         </div>
       </el-col>
       <el-col :span="6">
-        <el-card>
+        <el-card :body-style="{ padding: 0 }">
           <div id="drawerContainer" class="drawerMap" />
         </el-card>
       </el-col>
@@ -217,9 +228,13 @@ const data = reactive({
   V: 0,
   W: 0,
   kWh: 0,
+  assID: '',
+  facCode: '',
   ctrlVer: '',
   lctrlVer: '',
   devSN: '',
+  nameSet: false,
+  facCodeSet: false,
 })
 
 const init = async () => {
@@ -228,28 +243,33 @@ const init = async () => {
     if (!res) return
     info.value = res
   })
-  console.log(info.value)
   workModeNum.value = workMode[Number(info.value?.find((item) => item.key === 'base.core.frhCtrl.mode')?.value)]
   runModeNum.value = runMode[Number(info.value?.find((item) => item.key === 'base.core.frhCtrl.type')?.value)]
   lightModeNum.value = lightMode[Number(info.value?.find((item) => item.key === 'base.core.light.frLight.switch')?.value)]
   data.tempSetValue = Number(info.value?.find((item) => item.key === 'base.core.frhCtrl.temp.set')?.value)
+  data.facCode = info.value?.find((item) => item.key === 'facCode')?.value
+    ? (info.value?.find((item) => item.key === 'facCode')?.value as string)
+    : '无'
   initMap()
 }
 
 const WebSocketAPI = () => {
-  var token = MainStore.Login.token
-  var webSocket = new WebSocket('ws://124.222.184.107/api/ws/plugins/telemetry?token=' + token)
+  let token = MainStore.Login.token
+  let webSocket = new WebSocket('ws://124.222.184.107/api/ws/plugins/telemetry?token=' + token)
   webSocket.onopen = function () {
     const object = {
-      attrSubCmds: [{ entityType: 'DEVICE', entityId: FreezerStore.chooseRow.id.id, scope: 'CLIENT_SCOPE', cmdId: 2 }],
+      attrSubCmds: [
+        { entityType: 'DEVICE', entityId: FreezerStore.chooseRow.id.id, scope: 'CLIENT_SCOPE', cmdId: 2 },
+        { entityType: 'DEVICE', entityId: FreezerStore.chooseRow.id.id, scope: 'SERVER_SCOPE', cmdId: 3 },
+      ],
       tsSubCmds: [{ entityType: 'DEVICE', entityId: FreezerStore.chooseRow.id.id, scope: 'LATEST_TELEMETRY', cmdId: 1 }],
     }
-    var data = JSON.stringify(object)
+    let data = JSON.stringify(object)
     webSocket.send(data)
   }
   webSocket.onmessage = function (event) {
-    var received_msg = JSON.parse(event.data)
-    var recData
+    let received_msg = JSON.parse(event.data)
+    let recData
     switch (received_msg.subscriptionId) {
       case 1:
         received_msg = received_msg['data']
@@ -291,6 +311,9 @@ const WebSocketAPI = () => {
         data.lctrlVer = recData.lctrlVer ? recData.lctrlVer[0][1] : ''
         data.devSN = recData.devSN ? recData.devSN[0][1] : ''
         break
+      case 3:
+        received_msg = received_msg['data']
+        data.assID = received_msg['assID'] ? received_msg['assID'][0][1] : '无'
     }
   }
 }
@@ -304,49 +327,29 @@ const initMap = () => {
     .then((AMap) => {
       let map = new AMap.Map('drawerContainer', {
         viewMode: '3D',
-        // zoom: 1,
+        zoom: 18,
         resizeEnable: true,
         center: [FreezerStore.chooseRow.longitude, FreezerStore.chooseRow.latitude],
       })
-      map.plugin(['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar'], async () => {
-        var element = document.querySelector('.rd') as HTMLElement
-        if (element) {
-          var height = element.offsetHeight
-          map.addControl(
-            new AMap.Scale({
-              offset: [10, 20 - height],
-              position: 'LB',
-            })
-          )
-          map.addControl(
-            new AMap.ToolBar({
-              offset: [10, 20 - height],
-              position: 'RB',
-            })
-          )
-          // const markerClick = (e: { target: { _position: any[] } }) => {
-          //   for (let i = 0; i < tableData.value.length; i++) {
-          //     if (tableData.value[i].position === e.target._position.join(',')) {
-          //       handleRowClick(tableData.value[i])
-          //     }
-          //   }
-          // }
-          // await tableData.value.forEach((markerinfo: { id: number; position: string | null; location: string | null }) => {
-          //   if (markerinfo.position != null) {
-          //     const position = markerinfo.position.split(',').map(Number)
-          //     const marker = new AMap.Marker({
-          //       map: map,
-          //       position: position,
-          //     })
-          //     marker.setLabel({
-          //       direction: 'top',
-          //       content: '<div>' + markerinfo.location + '</div>',
-          //     })
-          //     marker.on('click', markerClick)
-          //   }
-          // })
-          map.setFitView(null, false, [150, 60, 100, 60])
-        }
+      map.plugin(['AMap.ToolBar', 'AMap.Scale'], async () => {
+        map.addControl(
+          new AMap.Scale({
+            offset: [10, 20 - 388],
+          })
+        )
+        map.addControl(
+          new AMap.ToolBar({
+            offset: [10, 20 - 388],
+          })
+        )
+        const marker = new AMap.Marker({
+          map: map,
+          position: [FreezerStore.chooseRow.longitude, FreezerStore.chooseRow.latitude],
+        })
+        marker.setLabel({
+          direction: 'top',
+          content: '<div>' + FreezerStore.chooseRow.address + '</div>',
+        })
       })
     })
     .catch((e) => {
@@ -369,6 +372,22 @@ const modeChange = (mode: 'work' | 'run' | 'light') => {
 
 const tempSetChange = (temp: number) => {
   changeScope(FreezerStore.chooseRow.id.id, 'temp', 'SHARED', temp).then((res) => {
+    if (res === '') {
+      ElMessage.success('修改成功')
+    }
+  })
+}
+
+const nameSave = () => {
+  changeScope(FreezerStore.chooseRow.id.id, 'assID', 'SHARED', data.assID == '无' ? '' : data.assID).then((res) => {
+    if (res === '') {
+      ElMessage.success('修改成功')
+    }
+  })
+}
+
+const facCodeSave = () => {
+  changeScope(FreezerStore.chooseRow.id.id, 'facCode', 'SHARED', data.facCode == '无' ? '' : data.facCode).then((res) => {
     if (res === '') {
       ElMessage.success('修改成功')
     }

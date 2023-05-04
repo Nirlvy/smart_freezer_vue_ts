@@ -8,11 +8,13 @@
         <div class="card-text">
           <div>
             <span>月间比</span>
-            <span class="value">{{ cardValue.monthRadio }}</span>
+            <span class="value">∞</span>
           </div>
           <div>
             <span>月环比</span>
-            <span class="value">{{ cardValue.monthBasis }}</span>
+            <span class="value">{{ Math.abs(cardValue.monthBasis) }}</span>
+            <el-icon v-if="cardValue.monthBasis > 0" color="#67C23A"><CaretTop /></el-icon>
+            <el-icon v-else color="#F56C6C"><CaretBottom /></el-icon>
           </div>
         </div>
         <el-divider />
@@ -47,21 +49,21 @@
         <div class="card-text">
           <div>
             <span>月均售出率</span>
-            <span class="value">{{ cardValue.monSoldRate }}</span>
+            <span class="value">{{ cardValue.monSoldRate }}%</span>
           </div>
         </div>
       </el-card>
     </el-col>
     <el-col :span="6">
       <el-card>
-        <div class="card-title">计划完成度</div>
-        <div class="card-value">{{ cardValue.monthTarget }}</div>
+        <div class="card-title">修改商品次数</div>
+        <div class="card-value">{{ cardValue.monthAlter }}</div>
         <div class="card-chart"><lchart3 /></div>
         <el-divider />
         <div class="card-text">
           <div>
-            <span>日均目标数</span>
-            <span class="value">{{ cardValue.dayTarget }}</span>
+            <span>日均修改数</span>
+            <span class="value">{{ cardValue.dayAlter }}</span>
           </div>
         </div>
       </el-card>
@@ -72,10 +74,24 @@
       <el-card>
         <div class="card-title">快速发起</div>
         <div class="shortCutLine">
-          <div v-for="item in 10" :key="item" class="shortCut">
-            <Cpu />
-            <div>出库</div>
-          </div>
+          <RouterLink to="/manage/freezer" style="text-decoration: none; color: black">
+            <div class="shortCut">
+              <Refrigerator />
+              <div>设备管理</div>
+            </div>
+          </RouterLink>
+          <RouterLink to="/manage/goods" style="text-decoration: none; color: black">
+            <div class="shortCut">
+              <Present />
+              <div>商品管理</div>
+            </div>
+          </RouterLink>
+          <RouterLink to="/manage/rec" style="text-decoration: none; color: black">
+            <div class="shortCut">
+              <VideoCamera />
+              <div>识别管理</div>
+            </div>
+          </RouterLink>
         </div>
       </el-card>
     </el-col>
@@ -97,13 +113,14 @@
 
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { Cpu } from '@element-plus/icons-vue'
+import { Refrigerator, Present, VideoCamera, CaretTop, CaretBottom } from '@element-plus/icons-vue'
 import lchart from './charts/lchart.vue'
 import lchart2 from './charts/lchart2.vue'
 import lchart3 from './charts/lchart3.vue'
 import bchart from './charts/bchart.vue'
 import bchart2 from './charts/bchart2.vue'
 import bchart3 from './charts/bchart3.vue'
+import { month, outlets, uploadOrSoldDays } from '@/utils/commonRequset2'
 
 const cardValue = reactive({
   monthSold: 0,
@@ -114,9 +131,32 @@ const cardValue = reactive({
   dayAveUp: 0,
   soldRate: 0,
   monSoldRate: 0,
-  monthTarget: 0,
-  dayTarget: 0,
+  monthAlter: 0,
+  dayAlter: 0,
 })
+
+const init = async () => {
+  const lastMonth = month(true)
+  const lastOut = await outlets(1, 10, 'Desc', 'Total Price', lastMonth.startDateTime, lastMonth.endDateTime)
+  const thisMonth = month(false)
+  const thisOut = await outlets(1, 10, 'Desc', 'Total Price', thisMonth.startDateTime, thisMonth.endDateTime)
+  cardValue.monthSold = thisOut[thisOut.length - 1]['Total Price']
+  cardValue.monthBasis = Math.floor((thisOut[thisOut.length - 1]['Total Price'] / lastOut[lastOut.length - 1]['Total Price'] - 1) * 100) / 100
+  const date = new Date()
+  cardValue.dayAveSold = Math.floor((thisOut[thisOut.length - 1]['Total Price'] / date.getDay()) * 100) / 100
+  const monthUp = await uploadOrSoldDays('month', true)
+  cardValue.monthUp = monthUp[monthUp.length - 1]
+  cardValue.dayAveUp = Math.floor(monthUp[monthUp.length - 1] / date.getDay())
+  const yearUp = await uploadOrSoldDays('year', true)
+  const monthSold = await uploadOrSoldDays('month', false)
+  const yearSold = await uploadOrSoldDays('year', false)
+  cardValue.soldRate = Math.floor((yearSold[yearSold.length - 1] / yearUp[yearUp.length - 1]) * 100) / 100
+  cardValue.monSoldRate = Math.floor((cardValue.soldRate / date.getMonth()) * 100) / 100
+  const monthAlter = await uploadOrSoldDays('month', null)
+  cardValue.monthAlter = monthAlter[monthAlter.length - 1]
+  cardValue.dayAlter = Math.floor(cardValue.monthAlter / date.getDate())
+}
+init()
 </script>
 
 <style scoped>

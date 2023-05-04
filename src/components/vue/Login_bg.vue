@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useMainStore } from '../store/store'
+import { useMainStore } from '../../store/store'
 
 const store = useMainStore()
 
@@ -30,7 +30,7 @@ load()
   right: 0;
   bottom: 0;
   /* background-image: linear-gradient(to bottom right, #fc466b, #3f5efb); */
-  background-image: url(../assets/img/Cupoi吃咖喱的poi_Cupoi吃咖喱的poi_林中小屋_98928714_p0_zip.jpg);
+  background-image: url(../../assets/img/Cupoi吃咖喱的poi_Cupoi吃咖喱的poi_林中小屋_98928714_p0_zip.jpg);
   background-repeat: no-repeat;
   background-position-x: center;
   background-position-y: center;

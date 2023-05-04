@@ -31,7 +31,7 @@ request2.interceptors.response.use(
     return response
   },
   async (error) => {
-    ElMessage.error(error.response.data.message)
+    ElMessage.error(error.response.data.msg)
     return Promise.reject(error)
   }
 )

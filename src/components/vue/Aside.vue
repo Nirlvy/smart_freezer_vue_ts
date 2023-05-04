@@ -32,26 +32,6 @@
           </el-icon>
           识别管理
         </el-menu-item>
-        <el-menu-item index="/manage/role">
-          <el-icon>
-            <Files />
-          </el-icon>
-          管理控制
-        </el-menu-item>
-      </el-sub-menu>
-      <el-sub-menu index="2">
-        <template #title>
-          <el-icon>
-            <Tickets />
-          </el-icon>
-          <span>记录菜单</span>
-        </template>
-        <el-menu-item index="/manage/user">
-          <el-icon>
-            <DataAnalysis />
-          </el-icon>
-          用户记录
-        </el-menu-item>
       </el-sub-menu>
     </el-menu>
   </el-scrollbar>
@@ -64,7 +44,7 @@
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { House, Refrigerator, Present, Box, Tickets, Fold, Files, DataAnalysis, VideoCamera } from '@element-plus/icons-vue'
+import { House, Refrigerator, Present, Box, Fold, VideoCamera } from '@element-plus/icons-vue'
 import { onBeforeRouteUpdate, useRoute } from 'vue-router'
 
 const isCollapse = ref(false)

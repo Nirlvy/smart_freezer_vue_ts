@@ -46,3 +46,5 @@ type FreezerValue = {
 type id2Item = {
   [key: string]: string
 }
+
+type scopes = '全部设备' | '在线设备' | '投放设备' | '启用设备' | '通电设备' | '在库设备' | '在店设备' | 'IMEI' | '离线设备' | '停用设备' | '断电设备'

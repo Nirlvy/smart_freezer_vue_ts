@@ -1,5 +1,5 @@
 <template>
-  <div class="windows" :class="{ focus: MianStore.Blur }" @mouseenter="MianStore.Blur = true" @mouseleave="MianStore.Blur = false">
+  <div class="windows" :class="{ focus: MainStore.Blur }" @mouseenter="MainStore.Blur = true" @mouseleave="MainStore.Blur = false">
     <div style="margin: 20px 0; text-align: center; font-size: 24px">
       <b>智能冰柜管理系统</b>
     </div>
@@ -41,7 +41,7 @@ const user = reactive({
   username: '',
   password: '',
 })
-const MianStore = useMainStore()
+const MainStore = useMainStore()
 const router = useRouter()
 const rules = reactive<FormRules>({
   username: [
@@ -63,8 +63,8 @@ const login = async (formEl: FormInstance | undefined) => {
         if (res.data.status) {
           return
         }
-        MianStore.Login = res.data
-        MianStore.Jwt = jwt_decode(res.data.token)
+        MainStore.Login = res.data
+        MainStore.Jwt = jwt_decode(res.data.token)
         setTimeout(() => {
           setRotes().then(() => {
             router.push('/manage/home')

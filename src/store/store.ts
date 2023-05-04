@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 export const useMainStore = defineStore('main', {
   state: () => ({
     ServerIp: 'http://124.222.184.107/api',
-    ServerIp2: 'http://8.130.47.235',
+    ServerIp2: 'http://localhost:8080',
     Blur: false,
     Login: {} as Login,
     Jwt: {} as JWT,
@@ -17,15 +17,16 @@ export const useMainStore = defineStore('main', {
   },
 })
 
-const totalFreezer = ['全部设备', '在线设备', '投放设备', '启用设备', '设备告警率', '纯净度', '通电设备']
+const totalFreezer = ['全部设备', '在线设备', '离线设备', '投放设备', '启用设备', '停用设备', '通电设备', '在店设备', '在库设备']
 
 export const useFreezerStore = defineStore('freezer', {
   state: () => ({
-    totalFreezer: totalFreezer.map((item) => ({
-      name: item,
-      value: 0,
-    })),
-    freezerCard: '全部设备',
+    totalFreezer: totalFreezer.reduce((acc, item) => {
+      acc[item] = 0
+      return acc
+    }, {}),
+    firstCard: '全部设备' as scopes,
+    freezerCard: '全部设备' as scopes,
     chooseRow: {} as deviceInfo,
     drawer: false,
   }),
@@ -52,4 +53,8 @@ export const useItemStore = defineStore('item', {
     enabled: true,
     strategies: [{ paths: ['id2Item'] }],
   },
+})
+
+export const useAFreezerStore = defineStore('AFreezer', {
+  state: () => ({}),
 })

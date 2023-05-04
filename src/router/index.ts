@@ -6,7 +6,7 @@ export const router = createRouter({
     {
       path: '/',
       redirect: '/login',
-      component: () => import('../components/Login_bg.vue'),
+      component: () => import('../components/vue/Login_bg.vue'),
       children: [
         {
           path: '/login',
@@ -31,7 +31,7 @@ export const setRotes = () => {
     if (main) {
       const manageRoutes = {
         path: '/manage',
-        component: () => import('../components/Manage.vue'),
+        component: () => import('../components/vue/Manage.vue'),
         children: [
           {
             path: 'home',
@@ -64,16 +64,6 @@ export const setRotes = () => {
             path: 'rec',
             name: '识别管理',
             component: () => import('@/views/Rec/index.vue'),
-          },
-          {
-            path: 'role',
-            name: '管理控制',
-            component: () => import('@/views/Role.vue'),
-          },
-          {
-            path: 'user',
-            name: '用户记录',
-            component: () => import('@/views/User.vue'),
           },
         ]
         manageRoutes.children = manageRoutes.children.concat(itemMenu)

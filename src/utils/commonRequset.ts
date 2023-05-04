@@ -1,6 +1,7 @@
 import { ElMessage } from 'element-plus'
 import request from './request'
 import { useFreezerStore, useMainStore } from '@/store/store'
+import { getScopeParam } from '@/components/ts/scope'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
@@ -84,11 +85,13 @@ export const getScope = async (deviceId: string, mode: 'page' | 'device' | 'info
   return res1.data.concat(res2.data).concat(res3.data)
 }
 
-export const changeScope = async (deviceId: string, mode: string, scope: 'SHARED' | 'SERVER', value: number) => {
+export const changeScope = async (deviceId: string, mode: string, scope: 'SHARED' | 'SERVER', value: number | string) => {
   const param = {
     temp: ['base.core.frhCtrl.temp.set'],
     check: ['check'],
     act: ['act'],
+    assID: ['assID'],
+    facCode: ['facCode'],
   }
   const url = '/plugins/telemetry/DEVICE/' + deviceId + '/' + scope + '_SCOPE'
   const res = await request.post(url, { [param[mode][0]]: value })
@@ -199,157 +202,11 @@ export const devicesOperate = async (deviceIds: string, operate: string) => {
 export const find = async (
   pageSize: number,
   currentPage: number,
-  type: 'Out' | 'Rep' | 'Shop' | 'IMEI' | 'PowerOn' | 'PowerOff',
+  type: '在线设备' | '离线设备' | '启用设备' | '停用设备' | '投放设备' | '在库设备' | '在店设备' | 'IMEI' | '通电设备' | '断电设备',
   search?: string
 ) => {
-  const typeChoose = (type: 'Out' | 'Rep' | 'Shop' | 'IMEI' | 'PowerOn' | 'PowerOff') => {
-    switch (type) {
-      case 'Out':
-        return [
-          {
-            key: {
-              type: 'ATTRIBUTE',
-              key: 'out',
-            },
-            valueType: 'NUMERIC',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: 1,
-                dynamicValue: null,
-              },
-              type: 'NUMERIC',
-            },
-          },
-        ]
-      case 'Rep':
-        return [
-          {
-            key: {
-              type: 'ATTRIBUTE',
-              key: 'assign',
-            },
-            valueType: 'NUMERIC',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: 0,
-                dynamicValue: null,
-              },
-              type: 'NUMERIC',
-            },
-          },
-        ]
-      case 'Shop':
-        return [
-          {
-            key: {
-              type: 'ATTRIBUTE',
-              key: 'assign',
-            },
-            valueType: 'NUMERIC',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: 1,
-                dynamicValue: null,
-              },
-              type: 'NUMERIC',
-            },
-          },
-        ]
-      case 'IMEI':
-        return [
-          {
-            key: {
-              type: 'ATTRIBUTE',
-              key: 'imei',
-            },
-            valueType: 'NUMERIC',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: search,
-                dynamicValue: null,
-              },
-              type: 'NUMERIC',
-            },
-          },
-        ]
-      case 'PowerOn':
-        return [
-          {
-            key: {
-              type: 'TIME_SERIES',
-              key: 'base.comm.battery.stat',
-            },
-            valueType: 'NUMERIC',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: 0,
-                dynamicValue: null,
-              },
-              type: 'NUMERIC',
-            },
-          },
-          {
-            key: {
-              type: 'ATTRIBUTE',
-              key: 'active',
-            },
-            valueType: 'BOOLEAN',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: true,
-                dynamicValue: null,
-              },
-              type: 'BOOLEAN',
-            },
-          },
-        ]
-      case 'PowerOff':
-        return [
-          {
-            key: {
-              type: 'TIME_SERIES',
-              key: 'base.comm.battery.stat',
-            },
-            valueType: 'NUMERIC',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: 1,
-                dynamicValue: null,
-              },
-              type: 'NUMERIC',
-            },
-          },
-          {
-            key: {
-              type: 'ATTRIBUTE',
-              key: 'active',
-            },
-            valueType: 'BOOLEAN',
-            predicate: {
-              operation: 'EQUAL',
-              value: {
-                defaultValue: true,
-                dynamicValue: null,
-              },
-              type: 'BOOLEAN',
-            },
-          },
-        ]
-    }
-  }
   const info = {
-    entityFilter: {
-      type: 'entityType',
-      entityType: 'DEVICE',
-    },
-    keyFilters: typeChoose(type),
+    ...getScopeParam('http', type, search),
     pageLink: {
       page: currentPage,
       pageSize: pageSize,
@@ -456,6 +313,34 @@ export const getTime = (time: number) => {
 export const getDeviceProfile = async (deviceId: string) => {
   const url = '/deviceProfile/' + deviceId
   const res = await request.get<deviceProfile & E>(url)
+  if (res.data.status) {
+    return
+  }
+  return res.data
+}
+
+export const getDeviceProfileInfos = async () => {
+  const res = await request.get<deviceProfileInfos & E>('/deviceProfileInfos?pageSize=2147483647&page=0')
+  if (res.data.status) {
+    return
+  }
+  return res.data
+}
+
+export const addDevice = async (id: string, name: string) => {
+  const Object = {
+    additionalInfo: {
+      gateway: false,
+      overwriteActivityTime: false,
+      description: '',
+    },
+    deviceProfileId: {
+      entityType: 'DEVICE_PROFILE',
+      id: id,
+    },
+    name: name,
+  }
+  const res = await request.post<deviceInfo & E>('/device', Object)
   if (res.data.status) {
     return
   }

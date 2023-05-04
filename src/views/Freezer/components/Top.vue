@@ -7,18 +7,20 @@
             <SvgIcon name="freezer" />
           </div>
           <div class="info">
-            <div>{{ FreezerStore.freezerCard }}</div>
-            <div>{{ cardValue[0].value }}</div>
+            <div>{{ FreezerStore.firstCard }}</div>
+            <div>{{ FreezerStore.totalFreezer[FreezerStore.firstCard] }}</div>
           </div>
         </el-card>
       </el-tooltip>
     </el-col>
-    <el-col v-for="(item, index) in cardValue.slice(1)" :key="index" :span="3">
-      <el-card class="card">
-        <SvgIcon name="freezer" />
+    <el-col v-for="(item, index) in Object.keys(FreezerStore.totalFreezer).slice(1, 7)" :key="index" :span="3">
+      <el-card class="card" @click="FreezerStore.freezerCard = item as scopes">
+        <el-icon :style="{ 'font-size': '50px', margin: '20px auto', color: color[index] }">
+          <component :is="icon[index]" />
+        </el-icon>
         <div class="info">
-          <div>{{ item.name }}</div>
-          <div>{{ item.value }}</div>
+          <div>{{ item }}</div>
+          <div>{{ FreezerStore.totalFreezer[item] }}</div>
         </div>
       </el-card>
     </el-col>
@@ -26,43 +28,46 @@
 </template>
 
 <script setup lang="ts">
-import SvgIcon from '@/components/SvgIcon.vue'
 import { useFreezerStore } from '@/store/store'
-import { find } from '@/utils/commonRequset'
+import { markRaw } from 'vue'
+import { Connection, Link, MagicStick, OfficeBuilding, Open, TurnOff } from '@element-plus/icons-vue'
 
 const FreezerStore = useFreezerStore()
-const cardValue = ref(FreezerStore.totalFreezer)
 const cardStyle = {
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
   textAlign: 'center',
 }
-
-find(FreezerStore.totalFreezer[0].value, 0, 'PowerOn').then((res) => {
-  if (!res) {
-    return
-  }
-  FreezerStore.totalFreezer[6].value = res.totalElements
-})
+const icon = [markRaw(Connection), markRaw(Connection), markRaw(OfficeBuilding), markRaw(Open), markRaw(TurnOff), markRaw(MagicStick)]
+const color = ['#6AC373', '#F77A7A', '#BBC3D3', '#6AC373', '#F77A7A', '#3989F5']
 
 const firstCardClick = () => {
-  switch (FreezerStore.freezerCard) {
-    case '全部设备':
-      FreezerStore.freezerCard = '在库设备'
-      break
-    case '在库设备':
-      FreezerStore.freezerCard = '在店设备'
-      break
-    case '在店设备':
-      FreezerStore.freezerCard = '全部设备'
-      break
+  if (FreezerStore.firstCard != FreezerStore.freezerCard) {
+    FreezerStore.freezerCard = FreezerStore.firstCard
+  } else {
+    switch (FreezerStore.firstCard) {
+      case '全部设备':
+        FreezerStore.firstCard = '在库设备'
+        FreezerStore.freezerCard = '在库设备'
+        break
+      case '在库设备':
+        FreezerStore.firstCard = '在店设备'
+        FreezerStore.freezerCard = '在店设备'
+        break
+      case '在店设备':
+        FreezerStore.firstCard = '全部设备'
+        FreezerStore.freezerCard = '全部设备'
+        break
+    }
   }
 }
 </script>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
+import SvgIcon from '@/components/vue/SvgIcon.vue'
+
 export default defineComponent({
   name: 'App',
   components: { SvgIcon },

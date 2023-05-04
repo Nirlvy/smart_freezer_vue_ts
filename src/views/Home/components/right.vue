@@ -7,24 +7,24 @@
           <el-icon :size="52" color="#FE7179">
             <Refrigerator />
           </el-icon>
-          <div class="card-text">{{ FreezerStore.totalFreezer[0].name }}</div>
-          <div class="card-text">{{ FreezerStore.totalFreezer[0].value }}</div>
+          <div class="card-text">全部设备</div>
+          <div class="card-text">{{ FreezerStore.totalFreezer['全部设备'] }}</div>
         </div>
       </el-col>
-      <el-col v-for="(item, index) in FreezerStore.totalFreezer.slice(1)" :key="index" :span="8">
+      <el-col v-for="(item, index) in Object.keys(FreezerStore.totalFreezer).slice(1)" :key="index" :span="8">
         <div class="tone">
           <el-progress
             type="circle"
             :percentage="
-              Math.floor((item.value * 100) / FreezerStore.totalFreezer[0].value)
-                ? Math.floor((item.value * 100) / FreezerStore.totalFreezer[0].value)
+              Math.floor((FreezerStore.totalFreezer[item] * 100) / FreezerStore.totalFreezer['全部设备'])
+                ? Math.floor((FreezerStore.totalFreezer[item] * 100) / FreezerStore.totalFreezer['全部设备'])
                 : 0
             "
             :width="52"
             :color="colors"
           />
-          <div class="card-text">{{ item.name }}</div>
-          <div class="card-text">{{ item.value }}</div>
+          <div class="card-text">{{ item }}</div>
+          <div class="card-text">{{ FreezerStore.totalFreezer[item] }}</div>
         </div>
       </el-col>
     </el-row>
@@ -58,12 +58,10 @@
 import request from '@/utils/request'
 import { useFreezerStore, useMainStore } from '@/store/store'
 import { ChatRound, ArrowRightBold, Refrigerator } from '@element-plus/icons-vue'
-import { ref, markRaw, reactive } from 'vue'
-import { find } from '@/utils/commonRequset'
+import { markRaw, reactive } from 'vue'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
-const entitiesQuery = ref<entitiesQueryFind>()
 const centerList = reactive([
   { name: '仓库代办', value: 0 },
   { name: '生产代办', value: 0 },
@@ -90,11 +88,6 @@ const init = async () => {
       return
     }
     MainStore.User = res.data
-  })
-  find(FreezerStore.totalFreezer[0].value, 0, 'Out').then((res) => {
-    if (!res) return
-    entitiesQuery.value = res
-    FreezerStore.totalFreezer[2].value = res.totalElements
   })
 }
 init()

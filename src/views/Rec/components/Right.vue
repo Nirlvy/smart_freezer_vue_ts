@@ -2,7 +2,7 @@
   <el-card>
     <div class="info">
       <div class="title">识别商品</div>
-      <el-form class="form" label-width="auto" :rules="rules">
+      <el-form ref="ruleFormRef" class="form" label-width="auto" :model="data" :rules="rules">
         <el-form-item prop="name" label="名称">
           {{ data.name }}
         </el-form-item>
@@ -10,8 +10,8 @@
           <el-switch v-model="data.choice" class="ml-2" inline-prompt active-text="拍照上传" inactive-text="手动上传" />
         </el-form-item>
         <el-form-item prop="img" label="上传图片">
-          <el-image v-if="data.choice" :src="data.img != '' ? data.img : '../src/assets/img/img.png'" @click="getVideo" />
-          <el-upload v-else class="avatar-uploader" :show-file-list="false" :before-upload="beforeUpload" :auto-upload="false">
+          <el-image v-if="data.choice" :src="data.img != '' ? data.img : '../src/assets/img/img.png'" class="avatar" @click="getVideo" />
+          <el-upload v-else class="avatar-uploader" :show-file-list="false" :before-upload="beforeUpload">
             <img v-if="data.img != ''" :src="data.img" class="avatar" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
@@ -33,9 +33,9 @@
 
 <script setup lang="ts">
 import { Plus } from '@element-plus/icons-vue'
-import { ElMessage, FormInstance, FormRules, UploadProps } from 'element-plus'
+import { ElMessage, ElNotification, FormInstance, FormRules, UploadProps } from 'element-plus'
 import { reactive, ref } from 'vue'
-import mqtt from 'paho-mqtt'
+import { client } from '@/components/vue/Manage.vue'
 
 const data = reactive({
   name: '',
@@ -44,7 +44,6 @@ const data = reactive({
   dialog: false,
 })
 const videoRef = ref<HTMLVideoElement | null>(null)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
 const stream = ref<MediaStream | null>(null)
 const constraints = {
   video: {
@@ -72,12 +71,15 @@ const rules = reactive<FormRules>({
 const beforeUpload: UploadProps['beforeUpload'] = (rawFile) => {
   if (rawFile.type !== 'image/jpeg' && rawFile.type !== 'image/png') {
     ElMessage.error('必须为 JPG 或者 PNG 格式!')
-    return false
   } else if (rawFile.size / 1024 / 1024 > 2) {
     ElMessage.error('不能大于2MB!')
-    return false
   }
-  return true
+  const reader = new FileReader()
+  reader.readAsDataURL(rawFile)
+  reader.onload = () => {
+    data.img = reader.result ? reader.result.toString() : ''
+  }
+  return false
 }
 
 const vedio = () => {
@@ -92,25 +94,6 @@ const vedio = () => {
 const getVideo = () => {
   data.dialog = true
   vedio()
-  drawBox()
-}
-
-const drawBox = () => {
-  requestAnimationFrame(() => {
-    const video = videoRef.value
-    const canvas = canvasRef.value
-    const context = canvas?.getContext('2d')
-    const width = video?.videoWidth
-    const height = video?.videoHeight
-    if (canvas && width && height && context) {
-      context.clearRect(0, 0, canvas.width, canvas.height)
-      context.drawImage(video, 0, 0, width, height)
-      context.strokeStyle = 'red'
-      context.lineWidth = 5
-      context.strokeRect(width / 4, height / 4, width / 2, height / 2)
-      drawBox()
-    }
-  })
 }
 
 const capture = () => {
@@ -134,26 +117,13 @@ const upload = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      const client = new mqtt.Client('broker.emqx.io', 8083, 'nirlvy')
-      client.connect({
-        onSuccess: () => {
-          console.log('Connected')
-          client.send('/rec/send', data.img)
-          client.subscribe('/rec/complete')
-        },
-        keepAliveInterval: 10,
-        onFailure: (err) => {
-          console.log('Connection failed:', err.errorMessage)
-        },
-      })
-      client.onConnectionLost = (responseObject) => {
-        if (responseObject.errorCode !== 0) {
-          console.log('MQTT连接已断开：' + responseObject.errorMessage)
-        }
-      }
+      client.send('realtime_idenrec', data.img)
+      ElMessage.success('发送成功')
+      client.subscribe('realtime_iden')
       client.onMessageArrived = (message) => {
-        console.log('Message received:', message.payloadString)
-        // TODO:接收
+        if (message.destinationName === 'realtime_iden') {
+          data.name = message.payloadString
+        }
       }
     }
   })
@@ -181,6 +151,10 @@ const upload = async (formEl: FormInstance | undefined) => {
 .dialog {
   display: flex;
   flex-direction: column;
+}
+.avatar {
+  width: 200px;
+  height: 200px;
 }
 </style>
 

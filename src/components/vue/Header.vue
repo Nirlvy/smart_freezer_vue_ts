@@ -10,12 +10,8 @@
         </el-icon>
         <template #dropdown>
           <el-dropdown-menu>
-            <router-link to="/manage/person" style="text-decoration: none"
-              ><el-dropdown-item>个人中心</el-dropdown-item>
-            </router-link>
-            <span @click="logout">
-              <el-dropdown-item>退出登录</el-dropdown-item></span
-            >
+            <router-link to="/manage/person" style="text-decoration: none"><el-dropdown-item>个人中心</el-dropdown-item> </router-link>
+            <span @click="logout"><el-dropdown-item>退出登录</el-dropdown-item></span>
           </el-dropdown-menu>
         </template>
       </el-dropdown>
@@ -29,7 +25,7 @@
 import { Setting } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { useMainStore } from '../store/store'
+import { useMainStore } from '../../store/store'
 
 const router = useRouter()
 const store = useMainStore()

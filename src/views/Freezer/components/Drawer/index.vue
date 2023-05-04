@@ -13,25 +13,23 @@
           <el-button class="ml-10" type="primary" @click="nameSave">确定</el-button>
         </span>
       </div>
-      <div>设备配置:{{ FreezerStore.chooseRow.deviceProfileName }}</div>
+      <div>设备配置:{{ FreezerStore.chooseRow.type }}</div>
       <div />
     </div>
     <el-tabs v-model="activeName" class="tabs">
       <el-tab-pane label="设备管理" name="first" lazy><DrawerPageOne /></el-tab-pane>
       <el-tab-pane label="数据概览" name="second" lazy><DrawerPageTwo /></el-tab-pane>
       <el-tab-pane label="商品销售" name="third" lazy><DrawerPageThree /></el-tab-pane>
-      <el-tab-pane label="监控告警" name="fourth" lazy><DrawerPageFour /></el-tab-pane>
     </el-tabs>
   </el-drawer>
 </template>
 
 <script setup lang="ts">
-import SvgIcon from '@/components/SvgIcon.vue'
+import SvgIcon from '@/components/vue/SvgIcon.vue'
 import { useFreezerStore } from '@/store/store'
 import DrawerPageOne from './components/DrawerPageOne.vue'
 import DrawerPageTwo from './components/DrawerPageTwo.vue'
 import DrawerPageThree from './components/DrawerPageThree/index.vue'
-import DrawerPageFour from './components/DrawerPageFour.vue'
 import { ref, defineComponent } from 'vue'
 import { updateDevice } from '@/utils/commonRequset'
 import { ElMessage } from 'element-plus'

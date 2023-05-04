@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 export const useMainStore = defineStore('main', {
   state: () => ({
     ServerIp: 'http://124.222.184.107/api',
-    ServerIp2: 'http://localhost:8080',
+    ServerIp2: 'http://8.130.47.235:8080',
     Blur: false,
     Login: {} as Login,
     Jwt: {} as JWT,
@@ -56,5 +56,13 @@ export const useItemStore = defineStore('item', {
 })
 
 export const useAFreezerStore = defineStore('AFreezer', {
-  state: () => ({}),
+  state: () => ({
+    monthUp: [],
+    monthSold: [],
+    yearSold: [],
+    yearUp: [],
+    monthAlter: [],
+    monthSoldValue: [],
+    yearSoldValue: [],
+  }),
 })

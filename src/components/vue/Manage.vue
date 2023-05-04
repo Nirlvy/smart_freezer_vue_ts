@@ -33,6 +33,7 @@ import { ElNotification } from 'element-plus'
 import { h } from 'vue'
 import { getScopeParam } from '../ts/scope'
 import mqtt from 'paho-mqtt'
+import { productUpdate } from '@/utils/commonRequset2'
 
 const MainStore = useMainStore()
 const FreezerStore = useFreezerStore()
@@ -150,6 +151,7 @@ const mqttAPI = () => {
         ]),
       })
     }
+    productUpdate(MainStore.imgBase64[1])
   }
 }
 

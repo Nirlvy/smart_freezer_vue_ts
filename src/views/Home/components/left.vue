@@ -42,7 +42,7 @@
     </el-col>
     <el-col :span="6">
       <el-card>
-        <div class="card-title">售出率</div>
+        <div class="card-title">年售出率</div>
         <div class="card-value">{{ cardValue.soldRate }}%</div>
         <div class="card-chart"><lchart2 /></div>
         <el-divider />
@@ -56,7 +56,7 @@
     </el-col>
     <el-col :span="6">
       <el-card>
-        <div class="card-title">修改商品次数</div>
+        <div class="card-title">月修改商品次数</div>
         <div class="card-value">{{ cardValue.monthAlter }}</div>
         <div class="card-chart"><lchart3 /></div>
         <el-divider />
@@ -120,8 +120,10 @@ import lchart3 from './charts/lchart3.vue'
 import bchart from './charts/bchart.vue'
 import bchart2 from './charts/bchart2.vue'
 import bchart3 from './charts/bchart3.vue'
-import { month, outlets, uploadOrSoldDays } from '@/utils/commonRequset2'
+import { month, outlets, soldValue, uploadOrSoldDays } from '@/utils/commonRequset2'
+import { useAFreezerStore } from '@/store/store'
 
+const AFreezerStore = useAFreezerStore()
 const cardValue = reactive({
   monthSold: 0,
   monthRadio: 0,
@@ -145,16 +147,23 @@ const init = async () => {
   const date = new Date()
   cardValue.dayAveSold = Math.floor((thisOut[thisOut.length - 1]['Total Price'] / date.getDay()) * 100) / 100
   const monthUp = await uploadOrSoldDays('month', true)
+  AFreezerStore.monthUp = monthUp
   cardValue.monthUp = monthUp[monthUp.length - 1]
   cardValue.dayAveUp = Math.floor(monthUp[monthUp.length - 1] / date.getDay())
   const yearUp = await uploadOrSoldDays('year', true)
+  AFreezerStore.yearUp = yearUp
   const monthSold = await uploadOrSoldDays('month', false)
+  AFreezerStore.monthSold = monthSold
   const yearSold = await uploadOrSoldDays('year', false)
+  AFreezerStore.yearSold = yearSold
   cardValue.soldRate = Math.floor((yearSold[yearSold.length - 1] / yearUp[yearUp.length - 1]) * 100) / 100
-  cardValue.monSoldRate = Math.floor((cardValue.soldRate / date.getMonth()) * 100) / 100
+  cardValue.monSoldRate = Math.floor((cardValue.soldRate / (date.getMonth() + 1)) * 100) / 100
   const monthAlter = await uploadOrSoldDays('month', null)
+  AFreezerStore.monthAlter = monthAlter
   cardValue.monthAlter = monthAlter[monthAlter.length - 1]
   cardValue.dayAlter = Math.floor(cardValue.monthAlter / date.getDate())
+  AFreezerStore.monthSoldValue = await soldValue('month')
+  AFreezerStore.yearSoldValue = await soldValue('year')
 }
 init()
 </script>

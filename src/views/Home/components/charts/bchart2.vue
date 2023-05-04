@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import { productPage } from '@/utils/commonRequset2'
 import * as echarts from 'echarts'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
@@ -21,6 +22,8 @@ var chart: echarts.ECharts
 var option: EChartsOption
 var chartDom: HTMLCanvasElement
 const buttonGroup = ref('本月')
+const month = ref()
+const year = ref()
 
 onMounted(() => {
   window.addEventListener('resize', initEcharts)
@@ -31,7 +34,12 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', initEcharts)
 })
 
-const initEcharts = () => {
+const initEcharts = async () => {
+  buttonGroup.value = '本月'
+  if (!month.value) {
+    month.value = await productPage('month')
+    year.value = await productPage('year')
+  }
   if (chart != undefined) {
     chart.dispose()
   }
@@ -54,9 +62,9 @@ const initEcharts = () => {
     },
     series: [
       {
-        name: 'Access From',
+        name: '销量类别占比',
         type: 'pie',
-        radius: ['70%', '100%'],
+        radius: ['50%', '70%'],
         avoidLabelOverlap: false,
         itemStyle: {
           borderRadius: 10,
@@ -65,27 +73,10 @@ const initEcharts = () => {
         },
         label: {
           show: true,
-          position: 'center',
-          formatter: '{font|总销售额}\n{num|¥145000}',
-          rich: {
-            font: {
-              fontSize: '12px',
-            },
-            num: {
-              fontSize: '20px',
-            },
-          },
+          position: 'outside',
+          formatter: '{b} : {c} ({d}%)',
         },
-        labelLine: {
-          show: false,
-        },
-        data: [
-          { value: 1048, name: 'Search Engine' },
-          { value: 735, name: 'Direct' },
-          { value: 580, name: 'Email' },
-          { value: 484, name: 'Union Ads' },
-          { value: 300, name: 'Video Ads' },
-        ],
+        data: month.value,
       },
     ],
   }
@@ -93,12 +84,12 @@ const initEcharts = () => {
 }
 
 const button1 = () => {
-  option.series = [{ data: [820, 932, 901, 934, 1290, 1330, 1320] }]
+  option.series ? (option.series[0].data = month.value) : ''
   option && chart.setOption(option)
 }
 
 const button2 = () => {
-  option.series = [{ data: [1, 2, 3, 4, 5, 6, 7] }]
+  option.series ? (option.series[0].data = year.value) : ''
   option && chart.setOption(option)
 }
 </script>

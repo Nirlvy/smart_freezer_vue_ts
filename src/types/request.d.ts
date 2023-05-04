@@ -343,6 +343,13 @@ type commodity = {
   mdVer: string
 }
 
+type commodityPage = {
+  data: commodity[]
+  hasNext: boolean
+  totalElements: number
+  totalPages: number
+}
+
 type chart =
   | {
       'base.core.popu.cnt': Array<{ ts: number; value: string }>

@@ -238,6 +238,10 @@ export const getComplexlyPage = async (
   sortProperty?: sortProperty,
   sortOrder?: sortOrder
 ) => {
+  if (input?.time) {
+    input.time[0] = typeof input.time[0] === 'string' ? Date.parse(input.time[0]) : input.time[0]
+    input.time[1] = typeof input.time[1] === 'string' ? Date.parse(input.time[1]) : input.time[1]
+  }
   const url =
     '/salesRecord/complexly' +
     '?pageSize=' +
@@ -268,19 +272,31 @@ export const getCommodityByIndex = async (index: number | string) => {
   return res.data
 }
 
-// export const getCommodities = async (
-//   page: {
-//     pageSize: number
-//     currentPage: number
-//   },
-//   input?: {
-//     name: string
-//   },
-//   sortProperty?: sortProperty,
-//   sortOrder?: sortOrder
-// ) => {
-//   const url = '/tenant/commodities' + '?pageSize=' + page.pageSize + '&page=' + (page.currentPage - 1)
-// }
+export const getCommodities = async (
+  page: {
+    pageSize: number
+    currentPage: number
+  },
+  input?: {
+    name: string
+    number: string
+    time: string[]
+  },
+  deviceId?: string
+) => {
+  const url =
+    '/tenant/commodities?pageSize=' +
+    page.pageSize +
+    '&page=' +
+    (page.currentPage - 1) +
+    (input?.name != '' ? '&textSearch=' + input?.name : '') +
+    (deviceId ? '&deviceId=' + deviceId : '')
+  const res = await request.get<commodityPage & E>(url)
+  if (res.data.status) {
+    return
+  }
+  return res.data
+}
 
 export const getDeviceCharts = async (deviceId: string, time: number[]) => {
   const param = ['base.core.popu.cnt', 'base.core.door.cnt', 'base.core.frhCtrl.temp.val', 'base.core.power.u']

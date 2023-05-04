@@ -2,7 +2,7 @@
   <div class="tableHead">
     <div class="headLine">
       <el-input v-model="input.name" class="input" placeholder="商品名称" width="200" clearable />
-      <el-input v-model="input.number" class="input ml-10" placeholder="资产编码" clearable />
+      <el-input v-model="input.number" class="input ml-10" placeholder="设备编号" clearable />
       <div class="picker ml-10">
         <el-date-picker
           v-model="input.time"
@@ -26,7 +26,7 @@
     </div>
   </div>
   <el-table :data="data.tableData" size="large" @row-click="handleRowClick">
-    <el-table-column prop="deviceId" label="资产编码" min-width="150" />
+    <el-table-column prop="deviceId" label="设备编号" min-width="150" />
     <el-table-column label="开门时间" min-width="170">
       <template #default="scope">
         {{ getTime(scope.row.openTime) }}
@@ -76,7 +76,7 @@
 
 <script setup lang="ts">
 import { useFreezerStore, useItemStore } from '@/store/store'
-import { getCommodityByIndex, getComplexlyPage, getDeviceInfo, getTime } from '@/utils/commonRequset'
+import { getCommodityByIndex, getComplexlyPage, getDeviceInfo, getTime, getCommodities, requestPage } from '@/utils/commonRequset'
 import { markRaw, reactive, ref } from 'vue'
 import { List, Operation, MapLocation } from '@element-plus/icons-vue'
 import Drawer from './Drawer.vue'
@@ -128,18 +128,53 @@ const shortcuts = [
 const tableOrMap = ref(0)
 const tableOrMapIcon = [markRaw(List), markRaw(MapLocation)]
 
-const tableInit = () => {
-  getComplexlyPage(data).then(async (res) => {
-    if (!res) return
-    for (const item of res.data) {
-      const deviceName = (await getDeviceName(item.deviceId)) || ''
-      const productName = (await getProductName(item.sale)) || ''
-      item.deviceId = deviceName
-      item.productName = productName
+const tableInit = async () => {
+  console.log(input)
+  if (input.name == '' && input.number == '' && input.time[0] == '' && input.time[1] == '')
+    getComplexlyPage(data).then(async (res) => {
+      if (!res) return
+      for (const item of res.data) {
+        const deviceName = (await getDeviceName(item.deviceId)) || ''
+        const productName = (await getProductName(item.sale)) || ''
+        item.deviceId = deviceName
+        item.productName = productName
+      }
+      data.tableData = res.data
+      data.total = res.totalElements
+    })
+  else {
+    let deviceId
+    if (input.number != '') {
+      await requestPage(2147483647, 1, false, input.number).then((res) => {
+        deviceId = res?.data[0].id.id
+      })
+      getComplexlyPage(data, input, deviceId).then(async (res) => {
+        if (!res) return
+        for (const item of res.data) {
+          const deviceName = (await getDeviceName(item.deviceId)) || ''
+          const productName = (await getProductName(item.sale)) || ''
+          item.deviceId = deviceName
+          item.productName = productName
+        }
+        data.tableData = res.data
+        data.total = res.totalElements
+      })
     }
-    data.tableData = res.data
-    data.total = res.totalElements
-  })
+    if (input.name != '') {
+      getCommodities(data, input).then(async (res) => {
+        if (!res) return
+        const goods = itemStore.allItem.filter((item) => Object.keys(item.sale)[0] === res.data[0].commodityIndex)
+        for (const item of goods) {
+          const deviceName = (await getDeviceName(item.deviceId)) || ''
+          const productName = (await getProductName(item.sale)) || ''
+          item.deviceId = deviceName
+          item.productName = productName
+        }
+        data.tableData = goods
+        data.total = res.totalElements
+      })
+    }
+  }
 }
 tableInit()
 
@@ -194,8 +229,11 @@ const handleRowClick = (row: deviceInfo) => {
 }
 
 const search = () => {
-  // getComplexlyPage(data, input).then(res => {
-  // })
+  data.currentPage = 1
+  data.pageSize = 5
+  data.total = 0
+  data.tableData = []
+  tableInit()
 }
 
 const reset = () => {

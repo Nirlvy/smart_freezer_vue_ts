@@ -7,7 +7,7 @@ const url = store.ServerIp2
 
 const request2 = axios.create({
   baseURL: url,
-  timeout: 5000,
+  timeout: 20000,
 })
 
 request2.interceptors.request.use(
